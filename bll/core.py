@@ -1,6 +1,34 @@
-from rom import Model
+import json
 
-from vendor.eme.EntityPatch import EntityPatch
+_content = {}
+
+def loadContent(content, patch=True, keep=True):
+    if content not in _content:
+        with open("bll/content/" + content + ".json", encoding="utf8") as fh:
+            js = json.load(fh)
+            if not patch or isinstance(js, list):
+                _content[content] = js
+            else:
+                _content[content] = EntityPatch(js)
+
+    return _content[content]
+
+def unloadContent(content):
+    if content in _content:
+        del _content[content]
+
+
+class EntityPatch():
+    def __init__(self, content, **kwargs):
+        if not content:
+            self.__dict__ = kwargs
+        elif isinstance(content, dict):
+            self.__dict__ = content
+        else:
+            self.__dict__ = content.__dict__
+
+    def toView(self):
+        return EntityView(self, entityClass='Entity')
 
 
 class EntityView():
@@ -20,7 +48,7 @@ class EntityView():
                 continue
 
             obj = _dict[objName]
-            if objName == 'entity' or isinstance(obj, Model) or isinstance(obj, EntityPatch) or obj is None:
+            if objName == 'entity':
                 del _dict[objName]
             elif isinstance(obj, set):
                 _dict[objName] = list(obj)
@@ -37,5 +65,7 @@ class EntityView():
                         subEntList.append(subEnt)
 
                 _dict[objName] = subEntList
+            else:
+                del _dict[objName]
 
         return _dict
