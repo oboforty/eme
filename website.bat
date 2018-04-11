@@ -1,6 +1,5 @@
 :RES
-cd website
 cls
-php -S localhost:80
+python website.py
 set /p id="Restart? " %=%
 goto:RES

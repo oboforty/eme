@@ -20,8 +20,10 @@ class Website(Flask):
         conf = json.load(open('apps/website/config/{}.json'.format(environment)))
 
         super().__init__('/', static_url_path='', static_folder='apps/website/public', template_folder='apps/website/templates')
-
         self.handlers = loadHandlers(self, "Controller", prefix="apps/website")
+        self.host = conf['host']
+        self.port = conf['port'] if 'port' in conf else 80
+
         self.addRouting(index=conf['index'])
 
         logging.basicConfig(filename=conf['log_path'], level=logging.WARNING)
@@ -38,9 +40,6 @@ class Website(Flask):
             #response.headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
 
             return response
-
-        self.host = conf['host']
-        self.port = conf['port'] if 'port' in conf else 80
 
     def addRouting(self, index):
         verbs = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
@@ -69,10 +68,8 @@ class Website(Flask):
                 if endPoint[-1] == '_':
                     endPoint += 'index'
 
-                print('{0: <7}{1: <20}{2: <20} >    {3}'.format(option, route, endPoint,
-                                                                controllerName + "." + methodName))
+                print('{0: <7}{1: <20}{2: <20} >    {3}'.format(option, route, endPoint, controllerName + "." + methodName))
                 self.add_url_rule(route, endPoint, getattr(controller, methodName), methods=[option])
 
     def start(self):
-        self.run(self.host, self.port, threaded=True)
-
+        self.run(self.host, self.port, threaded=True, debug=False)
