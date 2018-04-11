@@ -1,32 +1,36 @@
-from flask import render_template
-from flask import request
+from flask import Flask, Response, redirect, url_for, request, session, abort, render_template, request
+from flask_login import LoginManager, login_required, login_user, logout_user
 
-from flask import Flask, Response, redirect, url_for, request, session, abort
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
+from apps.website.entities.user import UserAuth
+from bll.entities.user import User
+from bll.managers.UserManager import UserManager, UserException
 
+loginManager = LoginManager()
+userManager = UserManager()
 
-class User(UserMixin):
-    def __init__(self, id):
-        self.id = id
-        self.name = "user" + str(id)
-        self.password = self.name + "_secret"
+def get_403(e):
+    return Response('<p>Login failed</p>')
 
-    def __repr__(self):
-        return "%d/%s/%s" % (self.id, self.name, self.password)
+@loginManager.user_loader
+def load_user(userid):
+    #return userManager.getUser(userid)
+    return UserAuth(userManager.getUser(userid))
 
-users = [User(id) for id in range(1, 21)]
-
-manager = LoginManager()
 
 class UsersController():
     def __init__(self, server):
         self.server = server
         self.group = "Users"
 
+        # Init login
         self.server.config["SECRET_KEY"] = "MY_VERY_SECRET_KEY"
-        self.manager = manager
-        self.manager.init_app(self.server)
-        self.manager.login_view = "get_users/login"
+        self.loginManager = loginManager
+        self.loginManager.init_app(server)
+        self.loginManager.login_view = "get_users/login"
+
+        # Init user storage
+        self.manager = userManager
+
 
     @login_required
     def profile(self):
@@ -35,26 +39,40 @@ class UsersController():
     def post_login(self):
         email = request.form['email']
         password = request.form['password']
-        remember = bool(request.form['remember'])
+        remember = bool(request.form.get('remember'))
 
-        if password == 'hotmail' and email == 'test@gmail.com':
-            user = User(2)
-            login_user(user, remember=remember)
-            return redirect(request.args.get("next"))
-        else:
-            return abort(401)
+        try:
+            user = self.manager.authenticateCredentials(email, password)
+            if user:
+                authUser = UserAuth(user)
+                login_user(authUser, remember=remember)
+                next = request.args.get("next")
+                if next:
+                    return redirect(next)
+                else:
+                    return redirect('/users/profile')
+        except UserException as e:
+            return redirect('/users/login?err={}'.format(e.code))
+        except Exception as e:
+            raise e
 
     def get_login(self):
-        return render_template('/users/login.html')
+        return render_template('/users/login.html', err=request.args.get('err'))
+
+    def post_register(self):
+        try:
+            user = self.manager.create(request.form.to_dict())
+
+            return redirect('/users/login')
+        except UserException as e:
+            return redirect('/users/register?err={}'.format(e.code))
+        except Exception as e:
+            raise e
+
+    def get_register(self):
+        return render_template('/users/register.html', err=request.args.get('err'))
 
     @login_required
     def get_logout(self):
         logout_user()
         return Response('<p>Logged out</p>')
-
-    def get_403(e):
-        return Response('<p>Login failed</p>')
-
-    @manager.user_loader
-    def load_user(userid):
-        return User(userid)
