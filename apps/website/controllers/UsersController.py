@@ -54,6 +54,7 @@ class UsersController():
         except UserException as e:
             return redirect('/users/login?err={}'.format(e.code))
         except Exception as e:
+            logging.exception("AUTH:LOGIN")
             raise e
 
     def get_login(self):
@@ -67,6 +68,7 @@ class UsersController():
         except UserException as e:
             return redirect('/users/register?err={}'.format(e.code))
         except Exception as e:
+            logging.exception("AUTH:REGISTER")
             raise e
 
     def get_register(self):
