@@ -1,6 +1,0 @@
-{
-  "host": "0.0.0.0",
-  "port": 80,
-  "log_path": "apps/website/logs/website.log",
-  "index": "Home"
-}
