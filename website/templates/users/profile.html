@@ -1,0 +1,20 @@
+
+<h5>Welcome {{ current_user.name }}</h5>
+
+
+<ul>
+    <li><b>XP:</b> {{current_user.xp}}</li>
+    <li><b>Score:</b> {{current_user.score}}</li>
+    <li><b>QP:</b> {{current_user.qp}}</li>
+    <li><b>Conquers:</b> {{current_user.conquers}}</li>
+    <li><b>Emerald:</b> {{current_user.emerald}}</li>
+</ul>
+
+{% if current_user.age %}
+<h5>Your player profile</h5>
+
+<ul>
+    <li><b>Age:</b> {{current_user.age}}</li>
+    <li><b>Role ID:</b> {{current_user.role}}</li>
+</ul>
+{% endif %}

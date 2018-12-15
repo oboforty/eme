@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block head %}
+  <meta property="og:title" content="EME website" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="http://eme.net" />
+  <meta property="og:image" content="/img/banner.png" />
+  <meta property="og:description" content="" />
+{% endblock %}
+
+{% block content %}
+
+hi
+
+{% endblock %}
+
+{% block scripts %}
+
+<script type="module">
+import {component as FileUpload} from "/js/vue/forms/upload.js";
+// import {motto} from "/js/motto.js";
+
+
+let gui = new Vue({
+  el: '#app-index',
+  data: {},
+
+});
+
+// Debug
+window.gui = gui;
+
+document.getElementById('app-index').style.display = 'block';
+
+</script>
+
+{% endblock %}
