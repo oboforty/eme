@@ -18,8 +18,7 @@ def loadHandlers(ctx, dirType, prefix=None):
     else:
         path = dirType.lower() + 's'
         prefix = ""
-    handlerNames = [splitext(f)[0] for f in sorted(listdir(path)) if
-                splitext(f)[0][-cL:] == dirType]
+    handlerNames = [splitext(f)[0] for f in sorted(listdir(path)) if splitext(f)[0][-cL:] == dirType]
     handlers = {}
 
     for moduleName in handlerNames:
