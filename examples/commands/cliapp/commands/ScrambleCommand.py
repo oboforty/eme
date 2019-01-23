@@ -3,7 +3,6 @@ import random
 
 class ScrambleCommand:
 
-
     def __init__(self, cli):
         self.commands = {
             'scramble': {

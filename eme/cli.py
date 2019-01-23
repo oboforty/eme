@@ -6,9 +6,9 @@ from eme.entities import loadHandlers
 
 class CommandLineInterface():
 
-    def __init__(self):
+    def __init__(self, directory='cliapp/'):
         self.prefix = "$eme~:"
-        self.commands = loadHandlers(self, 'Command', prefix='cliapp/')
+        self.commands = loadHandlers(self, 'Command', prefix=directory)
 
     def run(self, argv):
         """

@@ -35,6 +35,21 @@ def loadConfig(file):
 
     return config._sections
 
+def loadSettings(file):
+    conf = loadConfig(file)
+
+    for okey, oval in conf.items():
+        for key, val in oval.items():
+            if val == 'yes':
+                conf[okey][key] = True
+            elif val == 'no':
+                conf[okey][key] = False
+            elif ',' in val:
+                conf[okey][key] = val.split(',')
+
+    return conf
+
+
 class Singleton(type):
     _instances = {}
     def __call__(cls, *args, **kwargs):
