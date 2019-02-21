@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='eme',
-      version='4.2.0',
+      version='4.2.3',
       description='Multi-purpose web framework built',
       url='https://github.com/oboforty/eme',
       author='oboforty',
