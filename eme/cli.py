@@ -25,7 +25,7 @@ class CommandLineInterface():
             cmd_name, cmd_sub = cmd_full.split(':')
             scmd = 'run' + cmd_sub.title()
 
-            if cmd_name not in self.commands or not hasattr(self.commands[cmd_name.title()], scmd):
+            if cmd_name.title() not in self.commands or not hasattr(self.commands[cmd_name.title()], scmd):
                print('Command not found')
                return
 

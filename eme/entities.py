@@ -6,6 +6,7 @@ from importlib import import_module
 from json import JSONEncoder
 from os import listdir
 from os.path import splitext
+from uuid import UUID
 
 
 def loadHandlers(ctx, dirType, prefix=None):
@@ -67,6 +68,8 @@ class EntityJSONEncoder(JSONEncoder):
             return obj.value
         elif isinstance(obj, datetime):
             return time.mktime(obj.timetuple())
+        elif isinstance(obj, UUID):
+            return str(obj)
         #else:
         #    return obj.__dict__
 
