@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 
 from flask import Flask
 from werkzeug.routing import BaseConverter
@@ -11,6 +12,7 @@ class RegexConverter(BaseConverter):
         super(RegexConverter, self).__init__(url_map)
         self.regex = items[0]
 
+http_verbs = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
 class WebsiteApp(Flask):
     jinja_options = Flask.jinja_options.copy()
@@ -20,7 +22,6 @@ class WebsiteApp(Flask):
         conf = config['website']
         crou = config['routing']
         chead = config['headers']
-        cjin = config['jinja']
 
         super().__init__('/',
                          static_url_path=conf.get('static_url_path', ''),
@@ -29,21 +30,17 @@ class WebsiteApp(Flask):
 
         # Controllers
         self.manualRoutes = {}
+        self.urlRules = defaultdict(set)
         self.controllers = loadHandlers(self, "Controller", prefix=conf.get('controllers_folder'))
 
         # Socket
         self.host = conf.get('host')
         self.port = conf.get('port')
 
-        # Templates
-        self.jinja_options.update(dict(
-            block_start_string='{'+cjin.get('block', '%'),
-            block_end_string=cjin.get('block', '%')+'}',
-            variable_start_string='{' + cjin.get('variable', '='),
-            variable_end_string=cjin.get('variable', '=') + '}',
-            comment_start_string='{' + cjin.get('comment', '#'),
-            comment_end_string=cjin.get('comment', '#') + '}',
-        ))
+        # Flags
+        self.debug = conf.get('debug') == 'yes'
+        #self.testing = conf.get('testing') == 'yes'
+        self.develop = conf.get('develop') == 'yes'
 
         self.url_map.converters['regex'] = RegexConverter
         #self.json_encoder = EntityJSONEncoder
@@ -51,7 +48,7 @@ class WebsiteApp(Flask):
         # Routing
         routes = crou.copy()
         index = routes.pop('index')
-        self.manualRoutes.update(routes)
+        self.urlRules.update(routes)
         self.addRouting(index=index)
 
         # Logging
@@ -75,9 +72,16 @@ class WebsiteApp(Flask):
     def setRouting(self, rules):
         self.manualRoutes.update(rules)
 
-    def addRouting(self, index):
-        verbs = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    def addUrlRule(self, rules):
+        for new_url, endpoint in rules.items():
+            sp = new_url.split(' ')
+            prefix = 'GET' if len(sp) == 1 else sp[0].upper()
 
+            new_url = ''.join(sp[1:])
+
+            self.urlRules[prefix.lower() + '__' + endpoint].add(new_url)
+
+    def addRouting(self, index):
         print('{0: <27}{1: <20}      {2}'.format('Route', 'Endpoint', 'Method'))
         for controllerName, controller in self.controllers.items():
             for methodName in dir(controller):
@@ -88,7 +92,7 @@ class WebsiteApp(Flask):
                 actionName = methodName
                 methods = methodName.split('_')
 
-                if methods[0].upper() in verbs:
+                if methods[0].upper() in http_verbs:
                     option = methods.pop(0).upper()
                     actionName = '_'.join(methods)
 
@@ -99,18 +103,25 @@ class WebsiteApp(Flask):
                     route = "/" + controllerName.lower()
                 else:
                     route = "/" + controllerName.lower() + "/" + actionName
-                endPoint = option.lower() + '_' + route[1:]
+                endPoint = option.lower() + '__' + route[1:]
                 if endPoint[-1] == '_':
                     endPoint += 'index'
 
-                # Add manual root
-                manroute = option.upper() + " " + route
-                if manroute in self.manualRoutes:
-                    route = self.manualRoutes[manroute]
+                if endPoint in self.urlRules:
+                    # Reroute url by endpoint
+                    for route in self.urlRules[endPoint]:
+                        print('{0: <7}{1: <20}{2: <20} >    {3}'.format(option, route, endPoint, controllerName + "." + methodName))
+                        self.add_url_rule(route, endPoint, getattr(controller, methodName), methods=[option])
+                else:
+                    manroute = option.upper() + " " + route
 
-                # output and add routes
-                print('{0: <7}{1: <20}{2: <20} >    {3}'.format(option, route, endPoint, controllerName + "." + methodName))
-                self.add_url_rule(route, endPoint, getattr(controller, methodName), methods=[option])
+                    if manroute in self.manualRoutes:
+                        # Add manual root
+                        route = self.manualRoutes[manroute]
+
+                    # output and add routes
+                    print('{0: <7}{1: <20}{2: <20} >    {3}'.format(option, route, endPoint, controllerName + "." + methodName))
+                    self.add_url_rule(route, endPoint, getattr(controller, methodName), methods=[option])
 
     def start(self):
-        self.run(self.host, self.port, threaded=True, debug=False)
+        self.run(self.host, self.port, threaded=True, debug=self.debug)

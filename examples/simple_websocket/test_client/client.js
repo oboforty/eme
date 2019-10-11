@@ -6,7 +6,9 @@ let client = new (function(){
   this.subscribed = {};
   this.reoccuring = {};
   this.ws = null;
+  this.log_style = "color: purple";
   this.address = null;
+  this.c_msid = 1;
   this.trying = false;
   this.request = function(route, params) {
     if (!params && typeof route !== 'string') {
@@ -18,12 +20,14 @@ let client = new (function(){
 
     if (!params.route)
         console.error("No route defined for request: ", params);
+      // todo: itt
+    params.msid = this.c_msid++;
+    console.log(`%c<${route} (${params.msid})`, client.log_style, params);
 
-    console.log('<', route, params);
     var rwsString = JSON.stringify(params);
     try {
       this.ws.send(rwsString);
-      return new DeferredResponse(route);
+      return new DeferredResponse(route, params.msid);
     } catch(e){
       console.error(e);
       client.reconnect();
@@ -39,12 +43,15 @@ let client = new (function(){
 
     this.ws = new WebSocket(serveraddress);
     this.ws.onopen = function(event) {
+      console.log("%cConnected to websocket", client.log_style);
       callback();
     };
     this.ws.onerror = function(event) {
       console.error(event);
     };
     this.ws.onclose = function(event) {
+      console.log("%cDisconnected from websocket", client.log_style);
+
       // todo: display disconnected message
       if (client.disconnected)
         client.disconnected();
@@ -52,11 +59,12 @@ let client = new (function(){
     };
     this.ws.onmessage = function(event) {
       var rws = JSON.parse(event.data);
-      console.log('>', rws.route, rws);
 
       try {
         var gmarr = rws.route.split(':');
         var group = client.groups[gmarr[0]] || this;
+        var msid = rws.msid || rws.route;
+        console.log('%c>'+rws.route+`(${msid})`, "color:purple", rws);
 
         try {
             var params = Object.assign({}, rws);
@@ -68,17 +76,21 @@ let client = new (function(){
         if (params.params)
             params = params.params;
 
-        if (client.subscribed[rws.route]) {
-            client.subscribed[rws.route].apply(group, [params]);
-            delete client.subscribed[rws.route];
+        if (client.subscribed[msid]) {
+            // events handled by request().then(...)
+            client.subscribed[msid].apply(group, [params]);
+            delete client.subscribed[msid];
         }
 
-        if (client.reoccuring[rws.route]) {
-            client.reoccuring[rws.route].apply(group, [params]);
+        if (client.reoccuring[msid]) {
+            // events handled by client.on(...)
+            client.reoccuring[msid].apply(group, [params]);
         }
 
         var action = group[gmarr[1]];
+
         if (action) {
+            // events handled by groups
             action.apply(group, [params]);
         }
       } catch (e) {
@@ -98,10 +110,10 @@ let client = new (function(){
     if (client.ws.readyState !== client.ws.OPEN) {
       client.trying = true;
 
-      console.log("Trying to reconnect..")
+      console.log("%cTrying to reconnect..", client.log_style)
       client.connect(client.address, function(){
         client.trying = false;
-        console.log("Reconnect successful");
+        console.log("%cReconnect successful", client.log_style);
       });
 
       setTimeout(client.tryReconnect, 4000);
@@ -112,8 +124,8 @@ let client = new (function(){
 })();
 
 
-var DeferredResponse = function(route) {
+var DeferredResponse = function(route, msid) {
     this.then = function(callback) {
-        client.subscribed[route] = callback;
+        client.subscribed[msid] = callback;
     }
 };

@@ -11,6 +11,8 @@ class WSClient(WebSocket):
     def __init__(self, server, sock, address):
         super().__init__(server, sock, address)
         self.user = None
+        self.last_msid = None
+        self.msid = None
 
     def handleMessage(self):
         self.server.message_received(self, self.data)
@@ -98,6 +100,12 @@ class WebsocketApp(SimpleWebSocketServer):
         group = groups.pop(0)
         if len(groups) > 0:
             method = method + '_' + '_'.join(groups)
+
+        msid = rws.pop('msid', None)
+        client.msid = msid
+        if msid:
+            client.last_msid = msid
+
         action = getattr(self.groups[group], method)
 
         params = self._forgeParams(rws)
@@ -112,16 +120,21 @@ class WebsocketApp(SimpleWebSocketServer):
             if isinstance(response, dict):
                 if 'route' not in response:
                     response['route'] = route
+                if msid is not None:
+                    response['msid'] = msid
+
                 self.send(response, client)
             elif isinstance(response, list):
                 for resp in response:
                     if 'route' not in resp:
                         resp['route'] = route
+                    if msid is not None:
+                        resp['msid'] = msid
                     self.send(resp, client)
 
         except Exception as e:
             logging.exception("METHOD")
-    
+
             if self.debug:
                 print(e)
                 raise e  # does not work because vendor is shit
