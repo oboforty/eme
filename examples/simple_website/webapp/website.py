@@ -1,23 +1,18 @@
-from eme.entities import loadConfig
+from os.path import realpath, dirname
+from eme.entities import load_config
 from eme.website import WebsiteApp
 
 
 class ExampleWebsite(WebsiteApp):
 
-
     def __init__(self):
         # eme/examples/simple_website is the working directory.
-        conf = loadConfig('webapp/config.ini')
+        script_path = dirname(realpath(__file__))
+        conf = load_config('webapp/config.ini')
 
-        super().__init__(conf)
+        super().__init__(conf, script_path)
 
 
 if __name__ == "__main__":
     app = ExampleWebsite()
     app.start()
-
-# Uncomment this for wsgi, so that app.start is only called if the devs run the local version:
-# app = ExampleWebsite()
-# if __name__ == "__main__":
-#     app.start()
-

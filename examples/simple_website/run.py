@@ -1,7 +1,9 @@
-
 from webapp.website import ExampleWebsite
 
-# same as if you were executing simple_website/webapp/website.py
-# with working directory: simple_website
+# this can be used for Gunicorn as well
 app = ExampleWebsite()
-app.start()
+
+
+if __name__ == "__main__":
+    # run it manually:
+    app.start()

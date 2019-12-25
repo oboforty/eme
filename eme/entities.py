@@ -1,43 +1,50 @@
 import configparser
+import os
 import time
 from datetime import datetime, date
 from enum import Enum
 from importlib import import_module
 from json import JSONEncoder
-from os import listdir
-from os.path import splitext
 from uuid import UUID
 
 
-def loadHandlers(ctx, dirType, prefix=None):
+def load_handlers(ctx, dirType, path=None):
     cL = len(dirType)
-    if prefix:
-        path = prefix + dirType.lower() + 's'
-        prefix = prefix.replace('/', '.') + "."
-        if prefix[-1] == '.':
-            prefix = prefix[:-1]
-    else:
+
+    if path is None or not path:
+        # smart-guess: path is local path + plural handler type
         path = dirType.lower() + 's'
-        prefix = ""
-    handlerNames = [splitext(f)[0] for f in sorted(listdir(path)) if splitext(f)[0][-cL:] == dirType]
+        module_path = os.path.normpath(path)
+    else:
+        if os.path.isabs(path):
+            # resolve absolute path to
+            pathx = os.path.normpath(path).replace(os.path.normpath(os.getcwd()), '')
+        else:
+            pathx = os.path.normpath(path)
+        module_path = pathx.replace("//", '.').replace("/", '.').replace('\\', '.')
+
+    if module_path[0] == '.':
+        module_path = module_path[1:]
+
+    handlerNames = [os.path.splitext(f)[0] for f in sorted(os.listdir(path)) if os.path.splitext(f)[0][-cL:] == dirType]
     handlers = {}
 
     for moduleName in handlerNames:
-        module = import_module(prefix + dirType.lower() + "s." + moduleName)
+        module = import_module(module_path + "." + moduleName)
         handlerClass = getattr(module, moduleName)
         handler = handlerClass(ctx)
         handlers[moduleName[:-cL]] = handler
 
     return handlers
 
-def loadConfig(file):
+def load_config(file):
     config = configparser.ConfigParser()
     config.read(file)
 
     return config._sections
 
-def loadSettings(file):
-    conf = loadConfig(file)
+def load_settings(file):
+    conf = load_config(file)
 
     for okey, oval in conf.items():
         for key, val in oval.items():

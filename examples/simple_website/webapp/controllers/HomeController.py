@@ -7,15 +7,11 @@ class HomeController():
         self.server = server
         self.group = "Home"
 
-        # old way: weird and inconsistent
-        self.server.setRouting({
-            #'GET /home/hello': '/hello',
-        })
-
-        # new way: url -> endppoint, consistent and allows redundant urls!
-        self.server.addUrlRule({
-            'GET /hello': 'home/hello',
-            'GET /hi': 'home/hello',
+        # routing: url -> endpoint mapping
+        self.server.preset_endpoints({
+            # by default, the Home.hello endpoint would be reached at 'localhost:5000/home/hello'
+            # with this rule, however, the new rule is 'localhost:5000/hello'
+            'GET /hello': 'Home.hello',
         })
 
     def index(self):
@@ -23,5 +19,7 @@ class HomeController():
         return render_template('/home/index.html')
 
     def hello(self):
-
         return render_template('/home/hello.html')
+
+    def post_hello(self):
+        return ''
