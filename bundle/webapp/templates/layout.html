@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Geopoly: Hellas</title>
+
+  {% block head %}{% endblock %}
+
+  {% block og %}
+    <meta property="og:title" content="Geopoly: Hellas" />
+  {% endblock %}
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://geopoly.net" />
+  <meta property="og:image" content="https://geopoly.net/img/banner.png" />
+  <meta property="og:description" content="Geopoly - the best browser kingdom builder in the world!" />
+
+  <!-- Bootstrap & vue.js & bootstrap-vue -->
+  <link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css"/>
+  <link type="text/css" rel="stylesheet" href="/css/bootstrap-vue.min.css"/>
+
+  <!-- vendor js -->
+  <script src="/js/vendor/vue.min.js" defer></script>
+  <script src="/js/vendor/polyfill.min.js" defer></script>
+  <script src="/js/vendor/bootstrap-vue.min.js" defer></script>
+  <script defer type="text/javascript" src="/js/vendor/ra.min.js"></script>
+
+  <!-- custom javascript -->
+  {% block scripts %}{% endblock %}
+
+  <!-- custom styles & icons -->
+  <link rel="stylesheet" type="text/css" href="/css/style.css?xmas=true">
+  <link rel="stylesheet" type="text/css" href="/css/icons.css">
+  {% block styles %}{% endblock %}
+
+</head>
+<body>
+  {% block content %}{% endblock %}
+</body>
+</html>

@@ -7,5 +7,15 @@ setup(name='eme',
       author='oboforty',
       author_email='rajmund.csombordi@hotmail.com',
       license='MIT',
-      packages=['eme', 'eme/vendor'],
-      zip_safe=False)
+      zip_safe=False,
+      packages=['eme', 'eme/vendor', 'eme/auth'],
+      install_requires=[
+          'flask',
+          'flask-login',
+          'flask-mail',
+          'bcrypt',
+
+          'sqlalchemy',
+          'redis',
+          'faker',
+      ])

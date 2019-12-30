@@ -13,10 +13,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request.recv()
 
-        # todo: itt: to json
-        # todo: itt: rws parse
-        # todo: itt: response
-
+        # todo: itt: to json, rws parse, response
         #self.server.send()
 
         return

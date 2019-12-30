@@ -1,0 +1,26 @@
+{% extends "layout_welcome.html" %}
+
+
+{% block content_body %}
+  <div class="container">
+    <h1 class="text-white font-brand">Forgotten password</h1>
+
+    <div class="card-paper p-2 rounded-lg">
+
+      <form accept-charset="UTF-8" role="form" action="/users/forgot" method="POST">
+        <fieldset>
+          <div class="form-group">
+            <span>Please provide the email that was used for your account:</span>
+            <input class="form-control" placeholder="Email" name="email" type="text">
+          </div>
+
+          <input class="btn btn-lg btn-brand btn-block" type="submit" value="Send password reset link">
+        </fieldset>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+

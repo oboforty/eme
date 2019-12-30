@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% set navigation_bar = [
+  ('/admin/infobar', 'Infobar', 'icon-dashboard'),
+  ('/admin/viewer', 'Model Viewer', 'icon-paint'),
+  ('/town/edit', 'Edit Town', 'icon-edit'),
+  ('/world/edit', 'Edit World', 'panel-world'),
+  ('/user/list', 'Users', 'panel-statistics'),
+  ('/town', 'Back', 'icon-cancel'),
+
+] -%}
+{% set active_page = active_page|default('index') -%}
+
+
+{% block content %}
+
+  <nav class="navbar navbar-expand navbar-dark bg-primary">
+    <a class="navbar-brand" href="#">GeoAdmin</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="theOneInFrontOfTheGunLivesForever">
+      
+      <ul class="navbar-nav mx-auto">
+
+        {% for href, name, icon in navigation_bar %}
+        <li class="nav-item {% if name == active_page %}active{% endif %}">
+          <a href="{{ href }}" class="nav-link"><span class="ra ra-2x ra-{{ icon }}"></span></a>
+        </li>
+        {% endfor %}
+
+      </ul>
+    </div>
+  </nav>
+
+  {% block content_body %}{% endblock %}
+
+{% endblock %}

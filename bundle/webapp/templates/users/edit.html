@@ -1,0 +1,57 @@
+{% extends "layout_welcome.html" %}
+
+
+{% block content_body %}
+  <div class="d-flex justify-content-center h-100">
+    <div class="card">
+      <div class="card-header">
+        <span>Edit {{ uinfo.username }}</span>
+        <span class="small">{{ uinfo.uid }}</span>
+      </div>
+      <div class="card-body card-paper" style="min-width: 420px;">
+
+        <form accept-charset="UTF-8" role="form" action="/user/edit" method="POST">
+          <fieldset>
+            <input type="hidden" name="uid" value="{{ uinfo.uid }}" />
+
+            <div class="form-group">
+              <label for="username">username:</label>
+              <input class="form-control" placeholder="Username" name="username" id="username" value="{% if uinfo.username %}{{ uinfo.username }}{% endif %}" type="text">
+            </div>
+            <div class="form-group">
+              <label for="email">email:</label>
+              <input class="form-control" placeholder="Email" name="email" id="email" value="{% if uinfo.email %}{{ uinfo.email }}{% endif %}" type="text">
+            </div>
+            <div class="form-group">
+              <label for="wid">wid:</label>
+              <input class="form-control" placeholder="World wid" name="wid" id="wid" value="{% if uinfo.wid %}{{ uinfo.wid }}{% endif %}" type="text">
+            </div>
+            <div class="form-group">
+              <label for="iso">iso:</label>
+              <input class="form-control" placeholder="Town ISO" name="iso" id="iso" value="{% if uinfo.iso %}{{ uinfo.iso }}{% endif %}" type="text">
+            </div>
+            <div class="form-group">
+
+              <div class="custom-control custom-radio">
+                <input {% if uinfo.admin %} checked {% endif %}type="radio" class="custom-control-input" id="isAdmin1" name="admin" value="1" required>
+                <label class="custom-control-label" for="isAdmin1">Admin</label>
+              </div>
+
+              <div class="custom-control custom-radio">
+                <input {% if not uinfo.admin %} checked {% endif %}type="radio" class="custom-control-input" id="isAdmin0" name="admin" value="0" required>
+                <label class="custom-control-label" for="isAdmin0">Not admin</label>
+              </div>
+            </div>
+
+          </fieldset>
+
+          <button type="submit" class="btn btn-lg btn-danger btn-block">Edit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+

@@ -41,9 +41,9 @@ class WebsiteApp(Flask):
         self.port = conf.get('port')
 
         # Flags
-        self.debug = conf.get('debug') == 'yes'
-        #self.testing = conf.get('testing') == 'yes'
-        self.develop = conf.get('develop') == 'yes'
+        self.debug = conf.get('debug')
+        #self.testing = conf.get('testing')
+        self.develop = conf.get('develop')
 
         #self.json_encoder = EntityJSONEncoder
 
@@ -144,9 +144,10 @@ class WebsiteApp(Flask):
                     # otherwise there's only one possible route for this endpoint
                     routes = {route}
 
-                if endpoint in self.view_functions:
-                    # if endpoint is already configured, we ignore
-                    continue
+                # todo: stop reconfiguring the same route, not endpoint!
+                # if endpoint in self.view_functions:
+                #     # if endpoint is already configured, we ignore
+                #     continue
 
                 for route in routes:
                     print('{0: <7}{1: <20}{2: <20} >    {3}'.format(option, route, endpoint, controller_name + "." + method_name))

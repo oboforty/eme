@@ -1,0 +1,129 @@
+{% extends "layout_welcome.html" %}
+
+
+{% block content_body %}
+  <div class="d-flex justify-content-center h-100">
+    <div class="card">
+      <div class="card-header">
+        <span>Register</span>
+      </div>
+      <div class="card-body card-paper" style="min-width: 420px;">
+
+
+        <div class="form-control-feedback">
+          <span class="text-danger align-middle">
+            {% if err=='passwords_differ' %}
+              <i class="fa fa-close"> Passwords do not match.</i>
+            {% elif err=='email_exists' %}
+              <i class="fa fa-close"> Email is already registered.</i>
+            {% elif err=='user_exists' %}
+              <i class="fa fa-close"> Username is already registered.</i>
+            {% endif %}
+          </span>
+        </div>
+
+        <form class="form-horizontal" role="form" method="POST" action="/users/register">
+
+          <div class="row">
+            <div class="col-3 field-label-responsive">
+              <label for="username">Username</label>
+            </div>
+            <div class="col-9">
+              <div class="form-group">
+                <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                  <div class="input-group-addon" style="width: 2.6rem"><i class="fa fa-at"></i></div>
+                  <input type="text" name="username" class="form-control" id="username" placeholder="Username" required autofocus>
+                </div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="form-control-feedback">
+                <span class="text-danger align-middle">
+                  {% if err=='user_exists' %}
+                    <i class="fa fa-close"> This username is already registered</i>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-3 field-label-responsive">
+              <label for="email">E-Mail Address</label>
+            </div>
+            <div class="col-9">
+              <div class="form-group">
+                <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                  <div class="input-group-addon" style="width: 2.6rem"><i class="fa fa-at"></i></div>
+                  <input type="text" name="email" class="form-control" id="email" placeholder="Email address" required autofocus>
+                </div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="form-control-feedback">
+                <span class="text-danger align-middle">
+                  {% if err=='email_exists' %}
+                    <i class="fa fa-close"> This email is already registered</i>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-3 field-label-responsive">
+              <label for="password">Password</label>
+            </div>
+            <div class="col-9">
+              <div class="form-group {% if err=='passwords_differ' %}has-danger{% endif %}">
+                <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                  <div class="input-group-addon" style="width: 2.6rem"><i class="fa fa-key"></i></div>
+                  <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                </div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="form-control-feedback">
+                <span class="text-danger align-middle">
+                  {% if err=='passwords_differ' %}
+                    <i class="fa fa-close"> Passwords don't match</i>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-3 field-label-responsive">
+              <label for="password">Confirm Password</label>
+            </div>
+            <div class="col-9">
+              <div class="form-group {% if err=='passwords_differ' %}has-danger{% endif %}">
+                <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                  <div class="input-group-addon" style="width: 2.6rem">
+                    <i class="fa fa-repeat"></i>
+                  </div>
+                  <input type="password" name="password-confirm" class="form-control" id="password-confirm" placeholder="Password" required>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+
+            <div class="form-group">
+              <div class="custom-control custom-checkbox">
+                <input name="terms_agree" value="terms" required type="checkbox" class="custom-control-input" id="terms_agree">
+                <label class="custom-control-label" for="terms_agree">I have read and accepted the <a href="/legal/terms.pdf">Terms of Service</a> and <a href="/legal/privacy.pdf">Privacy Policy</a>.</label>
+              </div>
+            </div>
+
+          </div>
+
+          <button type="submit" class="btn btn-lg btn-brand btn-block"><i class="fa fa-user-plus"></i> Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+

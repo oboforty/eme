@@ -37,25 +37,68 @@ def load_handlers(ctx, dirType, path=None):
 
     return handlers
 
+
 def load_config(file):
     config = configparser.ConfigParser()
     config.read(file)
 
     return config._sections
 
+
 def load_settings(file):
     conf = load_config(file)
 
     for okey, oval in conf.items():
         for key, val in oval.items():
-            if val == 'yes':
+            if val.lower() in ('yes', 'true'):
                 conf[okey][key] = True
-            elif val == 'no':
+            elif val.lower() in ('no', 'false'):
                 conf[okey][key] = False
             elif ',' in val:
                 conf[okey][key] = val.split(',')
 
-    return conf
+    return SettingWrapper(conf)
+
+
+class SettingWrapper:
+    def __init__(self, conf):
+        self.conf = conf
+
+    def __getitem__(self, item):
+        return self.conf[item]
+
+    def __len__(self):
+        return len(self.conf)
+
+    def get(self, opts, cast=None, default=None):
+        if '.' not in opts:
+
+            if cast is not None:
+                return {k: cast(val) for k, val in self.conf[opts].items()}
+            else:
+                return self.conf[opts]
+
+        main, opt = opts.split('.')
+
+        if main not in self.conf:
+            return default
+
+        val = self.conf[main].get(opt)
+
+        if opt is None:
+            if cast is bool:
+                return False
+            elif cast is float or cast is int:
+                return 0
+
+            return default
+
+        if val is None:
+            return default
+
+        if cast is not None:
+            return cast(val)
+        return val
 
 
 class Singleton(type):

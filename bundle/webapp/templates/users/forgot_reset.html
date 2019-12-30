@@ -1,0 +1,27 @@
+{% extends "layout_welcome.html" %}
+
+
+{% block content_body %}
+  <h2>Reset password</h2>
+
+  <form accept-charset="UTF-8" role="form" action="/users/reset" method="POST">
+    <fieldset>
+      <input name="code" type="hidden" value="{{ code }}">
+
+      <div class="form-group">
+        <input class="form-control" placeholder="New password" name="password" type="password">
+      </div>
+
+      <div class="form-group">
+        <input class="form-control" placeholder="New password again" name="password-confirm" type="password">
+      </div>
+
+      <input class="btn btn-lg btn-brand btn-block" type="submit" value="Reset password">
+    </fieldset>
+  </form>
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+

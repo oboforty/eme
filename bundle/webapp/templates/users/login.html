@@ -1,0 +1,59 @@
+{% extends "layout_welcome.html" %}
+
+
+{% block content_body %}
+  <div class="d-flex justify-content-center h-100">
+    <div class="card">
+      <div class="card-header">
+        <span>Sign In</span>
+      </div>
+      <div class="card-body card-paper" style="min-width: 420px;">
+
+        <div class="form-control-feedback">
+          <span class="text-danger align-middle">
+            {% if err=='ok' %}
+              Successful registration! You can log in.
+            {% elif err=='name_not_found' %}
+              <i class="ra ra-close"> Email does not exist.</i>
+            {% elif err=='wrong_password' %}
+              <i class="ra ra-close"> Invalid password.</i>
+            {% elif err=='forgot_sent' %}
+              <i class="ra ra-close"> A reset link has been sent to your email if it exists.</i>
+            {% elif err=='reset_success' %}
+              <i class="ra ra-close"> Your password has been reset. Try to log in.</i>
+            {% endif %}
+          </span>
+        </div>
+
+        <form accept-charset="UTF-8" role="form" action="/users/login" method="POST">
+          <fieldset>
+            <div class="form-group">
+              <input class="form-control" placeholder="Username of Email" name="email" type="text">
+            </div>
+            <div class="form-group">
+              <input class="form-control" placeholder="Password" name="password" type="password" value="">
+            </div>
+
+            <input class="btn btn-lg btn-brand btn-block" type="submit" value="Login">
+
+            <div class="form-group">
+              <div class="custom-control custom-checkbox">
+                <input name="remember" value="remember" type="checkbox" class="custom-control-input" id="input-encrypt">
+                <label class="custom-control-label" for="input-encrypt">Remember Me</label>
+              </div>
+            </div>
+
+          </fieldset>
+        </form>
+
+        <div class="text-center">
+          <a class="" href="/users/register">Register</a> | <a class="" href="/users/forgot">Forgot password</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+

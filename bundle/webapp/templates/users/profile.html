@@ -1,0 +1,16 @@
+{% extends "layout_welcome.html" %}
+
+
+{% block content_body %}
+  <div>
+    Hello
+
+    {{ current_user.email }}
+  </div>
+
+  <a class="btn" href="/users/logout">Logout</a>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+
