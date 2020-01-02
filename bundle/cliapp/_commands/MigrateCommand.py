@@ -4,6 +4,7 @@ from sqlalchemy import text
 
 from cliapp.migrations.extra import create_testentities
 from cliapp.migrations.guard import check_db, clear_db
+
 from core.ctx import db_session, db_type, db_engine, EntityBase
 
 
@@ -20,7 +21,7 @@ class MigrateCommand():
     def run(self, *args):
         # check if DB is populated
         if not check_db():
-            print("The databse is not empty. Delete it? Y/n:", end="")
+            print("The database is not empty. Delete it? Y/n:", end="")
             if input().lower() == 'y':
                 print("Clearing DB")
                 clear_db()

@@ -1,9 +1,11 @@
-from core.instance import users
+from core.dal.users import User
+from eme.data_access import get_repo
 
 
 class UsersCommand():
     def __init__(self, server):
         self.server = server
+        self.users = get_repo(User)
 
         self.commands = {
             'users:list': {
@@ -19,17 +21,17 @@ class UsersCommand():
         }
 
     def runList(self):
-        dusers = users.list_all()
+        dusers = self.users.list_all()
 
         for user in dusers:
             print(user.uid, user.email, user.created_at)
 
     def runSetadmin(self, username):
-        user = users.find_user(username=username)
+        user = self.users.find_user(username=username)
 
         user.admin = not user.admin
 
-        users.save()
+        self.users.save()
         if user.admin:
             print("User is admin:", user.username, user.uid)
         else:

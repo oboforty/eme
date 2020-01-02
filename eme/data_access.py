@@ -78,25 +78,6 @@ class JSON_GEN(TypeDecorator):
             return value
 
 
-repositories = {}
-sessions = {}
-
-
-def register_session(type, sess):
-    sessions[type] = sess
-
-
-def register_repository(entClass, repoClass, type='db'):
-    repositories[entClass] = repoClass(db_session=sessions[type])
-
-
-def get_repo(entClass):
-    if entClass not in repositories:
-        raise Exception("Repository for {} is not registered!".format(entClass.__name__))
-
-    return repositories[entClass]
-
-
 class Repository(object):
     def __init__(self, type, register=True):
         self.type = type
@@ -118,11 +99,14 @@ class RepositoryBase:
     def __init__(self, db_session):
         self.session: Session = db_session
 
+    def get(self, eid):
+        return self.session.query(self.T).get(eid)
+
     def count(self):
         return self.session.query(self.T).count()
 
-    def get(self, eid):
-        return self.session.query(self.T).get(eid)
+    def is_empty(self):
+        return bool(self.session.query(1).first())
 
     def list_all(self):
         return self.session.query(self.T).all()
@@ -150,3 +134,23 @@ class RepositoryBase:
         self.session.query(self.T).delete()
         if commit:
             self.session.commit()
+
+
+repositories = {}
+sessions = {}
+
+
+def register_session(type, sess):
+    sessions[type] = sess
+
+
+def register_repository(entClass, repoClass, type='db'):
+    repositories[entClass] = repoClass(db_session=sessions[type])
+
+
+def get_repo(entClass) -> RepositoryBase:
+    if entClass not in repositories:
+        raise Exception("Repository for {} is not registered!".format(entClass.__name__))
+
+    return repositories[entClass]
+

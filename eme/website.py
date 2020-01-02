@@ -20,7 +20,7 @@ class WebsiteApp(Flask):
     jinja_options = Flask.jinja_options.copy()
     #jinja_options.update()
 
-    def __init__(self, config: dict, fbase):
+    def __init__(self, config: dict, fbase='webapp'):
         if len(config) == 0:
             raise Exception("Empty config file provided")
         conf = config['website']

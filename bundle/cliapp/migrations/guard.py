@@ -1,9 +1,10 @@
-from core.instance import users
+from core.dal.users import User
+from eme.data_access import get_repo
 
 
 def check_db():
     try:
-        w = users.list_all()
+        w = get_repo(User).is_empty()
         return not w
     except:
         pass
@@ -11,7 +12,6 @@ def check_db():
     return True
 
 def clear_db():
-    ww = worlds.list_all()
+    get_repo(User).delete_all()
 
-    users.delete_all()
-    worlds.delete_all()
+    # implement your own calls to clear the database
