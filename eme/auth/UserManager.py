@@ -1,15 +1,11 @@
-import json
 import random
 import string
 import time
 import bcrypt
 import hashlib
 
-from engine import settings
-from game.entities import User
 
-
-class UserException(Exception):
+class AuthException(Exception):
     def __init__(self, reason):
         self.reason = reason
 
@@ -17,87 +13,106 @@ class UserException(Exception):
         return str(self.reason)
 
 
+def get_token(user, salt=''):
+    swd = '-'
+    salt = str(user.uid) + swd + user.salt + salt + str(time.time())
+    token = hashlib.sha256(salt.encode('utf-8')).hexdigest()
+
+    return token
+
+
 class UserManager:
     def __init__(self, repository):
         self.repository = repository
+        self.T = self.repository.T
 
     def create(self, **userPatch):
-        userPatch.update(json.loads(settings.get('auth.user', str, "{}")))
-
         raw_password = userPatch.pop('password')
         raw_password2 = userPatch.pop('password-confirm')
 
-        user = User(**userPatch)
+        user = self.T(**userPatch)
 
         # pw don't match
         if not raw_password == raw_password2:
-            raise UserException('passwords_differ')
+            raise AuthException('passwords_differ')
         # email exists
         if self.repository.find_user(email=user.email):
-            raise UserException('email_exists')
+            raise AuthException('email_exists')
         # username exists
         if self.repository.find_user(username=user.username):
-            raise UserException('user_exists')
+            raise AuthException('user_exists')
 
         # create user & pw salt
         user.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         user.salt = bcrypt.gensalt().decode('utf-8')
-        user.token = self.getToken(user)
+        user.token = get_token(user)
         self.repository.create(user)
 
         return user
 
-    def getUser(self, uid):
-        user = self.repository.find_user(uid)
+    def get_user(self, uid):
+        return self.repository.find_user(uid)
 
-        return user
+    def get_by_code(self, code):
+        return self.repository.find_user(code=code)
 
-    def authenticateToken(self, uid, token):
-        user = self.repository.find_user(uid)
-        if not user:
-            raise UserException('user_doesnt_exist')
-
-        # user
-        if user.token == token:
-
-            return user
-        else:
-            raise UserException('wrong_token')
-
-    def authenticateCredentials(self, password, email=None, username=None):
+    def get_by_credentials(self, password, email=None, username=None):
         if email:
             user = self.repository.find_user(email=email)
 
             if not user:
-                raise UserException('email_not_found')
+                raise AuthException('email_not_found')
         else:
             user = self.repository.find_user(username=username)
 
             if not user:
-                raise UserException('user_not_found')
+                raise AuthException('user_not_found')
 
         if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-            user.token = self.getToken(user)
+            user.token = get_token(user)
             self.repository.save()
 
             return user
         else:
-            raise UserException('wrong_password')
+            raise AuthException('wrong_password')
 
-    def authenticateCode(self, code):
-        user = self.repository.find_user(code=code)
+    def get_by_token(self, uid, token):
+        user = self.repository.find_user(uid)
+        if not user:
+            raise AuthException('user_doesnt_exist')
 
-        return user
+        if user.token == token:
+            return user
+        else:
+            raise AuthException('wrong_token')
 
-    def getToken(self, user):
-        swd = '-'
-        salt = str(user.uid) + swd + user.salt + "GPL2018v9$__SALUD" + str(time.time())
-        token = hashlib.sha256(salt.encode('utf-8')).hexdigest()
+    def logout(self):
+        # todo: update last logout stamp?
+        pass
 
-        return token
+    def activate_email(self, reg_code):
+        # todo: ...
+        pass
 
-    def forgot(self, nameOrEmail):
-        user = self.repository.find_user(email=nameOrEmail)
+    def request_forgot_code(self, email=None, username=None):
+        if email is not None:
+            user = self.repository.find_user(email=email)
+
+            if not user and username is not None:
+                user = self.repository.find_user(username=username)
+
+            if not user:
+                raise AuthException('email_not_found')
+        elif username is not None:
+            user = self.repository.find_user(username=username)
+
+            if not user and email is not None:
+                user = self.repository.find_user(email=email)
+
+            if not user:
+                raise AuthException('user_not_found')
+        else:
+            raise AuthException("provide_email_or_username")
 
         # #let's try with username
         # if not user:
@@ -114,19 +129,19 @@ class UserManager:
 
         return code
 
-    def reset_password(self, code, raw_password, raw_password2):
+    def reset_password(self, forgot_code, raw_password, raw_password2):
 
         if not raw_password == raw_password2:
-            raise UserException('passwords_differ')
+            raise AuthException('passwords_differ')
 
-        user = self.repository.find_user(code=code)
+        user = self.repository.find_user(code=forgot_code)
 
         if not user:
-            raise UserException('wrong_code')
+            raise AuthException('wrong_code')
 
         user.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         user.salt = bcrypt.gensalt().decode('utf-8')
-        user.token = self.getToken(user)
+        user.token = get_token(user)
         user.forgot_code = None
         self.repository.save()
 

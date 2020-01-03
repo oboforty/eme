@@ -1,7 +1,7 @@
 from ..data_access import RepositoryBase
 
 
-class UserRepository(RepositoryBase):
+class UserRepositoryBase(RepositoryBase):
 
     def find_user(self, uid=None, email=None, username=None, code=None):
         if uid is not None:

@@ -3,7 +3,7 @@ from eme.entities import load_settings
 from eme.website import WebsiteApp
 
 
-from .services import filters, startup, login, mail
+from .services import templates, startup, mail, auth
 
 
 class ExampleWebsite(WebsiteApp):
@@ -15,11 +15,9 @@ class ExampleWebsite(WebsiteApp):
 
         super().__init__(conf, script_path)
 
-        self.jinja_env.globals.update(get_user=login.getUser)
-        filters.init_jinja_filters(self)
-
         startup.init(self)
-        login.init_login(self, conf['login'])
+        templates.init(self, None)
+        auth.init(self, conf['auth'])
         mail.init_mail(self, conf['mail'])
 
         with open('core/content/version.txt') as fh:

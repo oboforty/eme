@@ -1,34 +1,38 @@
 import uuid
 
-from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from flask_login import LoginManager, current_user, login_user, logout_user
 
-from core.dal.users import User
+from eme.auth import UserManager
 from eme.data_access import get_repo
 
+from core.dal.users import User
 from webapp.entities import UserAuth
 
-loginManager = LoginManager()
-usersRepository = None
+login_manager = LoginManager()
+user_manager = None
+user_repo = None
 
 
-def init_login(server, conf):
-    global loginManager, usersRepository
+def init(server, conf):
+    global user_repo, user_manager, login_manager
 
     server.config["SECRET_KEY"] = conf.get("secret_key")
-    loginManager.init_app(server)
-    loginManager.login_view = "get__users/login"
 
-    usersRepository = get_repo(User)
+    login_manager.init_app(server)
+    login_manager.login_view = "get__users/login"
+
+    user_repo = get_repo(User)
+    user_manager = UserManager(user_repo)
 
 
-@loginManager.user_loader
+@login_manager.user_loader
 def load_user(uid):
     if uid is None:
         return None
     if uid == 'None':
         raise Exception("Very interesting UID provided")
 
-    user = usersRepository.get(uid)
+    user = user_repo.get(uid)
 
     if not user:
         user = User(uid=uuid.UUID(uid), username=None)
@@ -40,24 +44,24 @@ def load_user(uid):
     return UserAuth(user)
 
 
-def getUser() -> UserAuth:
+def get_user() -> UserAuth:
 
     if not current_user.is_authenticated:
         # fetch anon user
         user = User(uid=uuid.uuid4(), username=None)
 
-        setUser(UserAuth(user))
+        set_user(UserAuth(user))
 
     return current_user
 
 
-def forceAnonLogin(uid):
+def auth_guest(uid=None):
     anon = User(uid=uuid.uuid4(), username=None)
 
-    setUser(anon)
+    set_user(anon)
 
 
-def setUser(user, remember=True):
+def set_user(user, remember=True):
     assert not user.uid == 'None'
     if not isinstance(user, UserAuth):
         assert not user.uid == 'None'

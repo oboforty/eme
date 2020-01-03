@@ -144,3 +144,14 @@ class EntityPatch():
 
     def toDict(self):
         return self.__dict__
+
+
+class Entity(object):
+    def __init__(self, type):
+        self.type = type
+
+    def __call__(self, cls):
+        class Wrapped(cls):
+            T = self.type
+
+        return Wrapped

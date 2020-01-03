@@ -3,23 +3,20 @@ from email.utils import parseaddr
 from flask import render_template, request
 from werkzeug.utils import redirect
 
-from game.instance import users
-from webapp.services import login, mail
+from eme.auth import UserManager, AuthException
 
-from .UserManager import UserException, UserManager
-
-
-userManager = UserManager(users)
+from webapp.services import mail, auth
 
 
-class UsersControllerBase():
+class UsersController():
+
     def __init__(self, server):
         self.server = server
         self.name = "Users"
 
-
+    @auth.login_required
     def get_index(self):
-        user = login.getUser()
+        user = auth.get_user()
 
         return render_template('/users/profile.html',
            err=request.args.get('err')
@@ -27,7 +24,7 @@ class UsersControllerBase():
 
 
     def get_login(self):
-        if login.getUser().username:
+        if auth.get_user().username:
             return redirect('/')
 
         return render_template('/users/login.html',
@@ -43,25 +40,25 @@ class UsersControllerBase():
         is_email = '@' in username_or_email
         try:
             if is_email:
-                user = userManager.authenticateCredentials(password, email=username_or_email)
+                user = auth.user_manager.authenticateCredentials(password, email=username_or_email)
             else:
-                user = userManager.authenticateCredentials(password, username=username_or_email)
+                user = auth.user_manager.authenticateCredentials(password, username=username_or_email)
 
             if user:
                 #login.logout()
-                login.setUser(user, remember=remember)
+                auth.set_user(user, remember=remember)
 
                 next = request.args.get("next")
                 if next:
                     return redirect(next)
                 else:
                     return redirect('/')
-        except UserException as e:
+        except AuthException as e:
             return redirect('/users/login?err={}'.format(e.reason))
 
 
     def get_register(self):
-        if login.getUser().username:
+        if auth.get_user().username:
             return redirect('/users')
 
         return render_template('/users/register.html',
@@ -71,21 +68,25 @@ class UsersControllerBase():
 
     def post_register(self):
         try:
-            user = userManager.create(**request.form.to_dict())
+            # todo: itt: update user with default user values
+            userDict = request.form.to_dict()
+            userDict.update()
+
+            user = auth.user_manager.create(**userDict)
 
             return redirect('/users/login?err=ok')
-        except UserException as e:
+        except AuthException as e:
             return redirect('/users/register?err={}'.format(e.reason))
 
 
-    @login.login_required
+    @auth.login_required
     def get_logout(self):
-        login.logout()
+        auth.logout()
 
         return redirect('/users/login')
 
     def get_forgot(self):
-        if login.getUser().username:
+        if auth.get_user().username:
             return redirect('/users')
 
         return render_template('/users/forgot.html',
@@ -100,7 +101,7 @@ class UsersControllerBase():
         if not paddr[1] == email:
             return ''
 
-        code = userManager.forgot(email)
+        code = auth.user_manager.forgot(email)
         if code:
             mail.send_mail(email, "Password reset", render_template('/mails/forgot.html', code=code))
 
@@ -110,12 +111,12 @@ class UsersControllerBase():
 
 
     def get_reset(self):
-        if login.getUser().username:
+        if auth.get_user().username:
             return redirect('/users')
 
         code = request.args['code']
 
-        user = userManager.authenticateCode(code)
+        user = auth.user_manager.authenticateCode(code)
 
         if not user:
             return redirect('/users')
@@ -132,8 +133,8 @@ class UsersControllerBase():
         password2 = request.form['password-confirm']
 
         try:
-            userManager.reset_password(code, password, password2)
+            auth.user_manager.reset_password(code, password, password2)
 
             return redirect('/users/login?err={}'.format("reset_success"))
-        except UserException as e:
+        except AuthException as e:
             return redirect('/users/reset?err={}'.format(e.reason))
