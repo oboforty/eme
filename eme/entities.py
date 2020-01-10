@@ -65,12 +65,12 @@ class SettingWrapper:
         self.conf = conf
 
     def __getitem__(self, item):
-        return self.conf[item]
+        return self.conf.get(item)
 
     def __len__(self):
         return len(self.conf)
 
-    def get(self, opts, cast=None, default=None):
+    def get(self, opts, default=None, cast=None):
         if '.' not in opts:
 
             if cast is not None:

@@ -12,5 +12,3 @@ def init(app, conf):
         """Converts variable to json string using eme's extended encoder."""
 
         return json.dumps(text, cls=EntityJSONEncoder)
-
-    # self.jinja_env.globals.update(get_user=login.getUser)

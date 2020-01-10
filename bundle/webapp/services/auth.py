@@ -1,8 +1,8 @@
 import uuid
 
-from flask_login import LoginManager, current_user, login_user, logout_user
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
-from eme.auth import UserManager
+from eme.auth import UserManager, login_forbidden
 from eme.data_access import get_repo
 
 from core.dal.users import User
@@ -13,16 +13,18 @@ user_manager = None
 user_repo = None
 
 
-def init(server, conf):
+def init(app, conf):
     global user_repo, user_manager, login_manager
 
-    server.config["SECRET_KEY"] = conf.get("secret_key")
+    app.config["SECRET_KEY"] = conf.get("secret_key")
 
-    login_manager.init_app(server)
+    login_manager.init_app(app)
     login_manager.login_view = "get__users/login"
 
     user_repo = get_repo(User)
     user_manager = UserManager(user_repo)
+
+    app.jinja_env.globals.update(get_user=get_user)
 
 
 @login_manager.user_loader
@@ -72,4 +74,5 @@ def set_user(user, remember=True):
 
 
 def logout():
+    user_manager.logout()
     logout_user()

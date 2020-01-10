@@ -1,15 +1,19 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Backend example - eme</title>
-    <meta charset="UTF-8" />
+{% extends "layout.html" %}
+{% set active_page = "Welcome" %}
 
+{% block content %}
+  <div class="container">
 
-    <link rel="stylesheet" href="/css/style.css">
-  </head>
-  <body>
-    <h1 class="red-brand">Hello</h1>
+    <div class="jumbotron">
+      <h1 class="display-4">Example EME Website</h1>
+      <p class="lead">It really ties the web together.</p>
+      <hr class="my-4">
 
-    <a href="/hello">Let's try out some custom routes</a>
-  </body>
-</html>
+      <p>Check out the examples:</p>
+      <a class="btn btn-primary btn-lg" href="/example1" role="button">Custom route 1</a>
+      <a class="btn btn-primary btn-lg" href="/example2" role="button">Custom route 2</a>
+      <a class="btn btn-primary btn-lg" href="/example3" role="button">Custom route 3</a>
+    </div>
+
+  </div>
+{% endblock %}

@@ -53,9 +53,6 @@ class UserManager:
     def get_user(self, uid):
         return self.repository.find_user(uid)
 
-    def get_by_code(self, code):
-        return self.repository.find_user(code=code)
-
     def get_by_credentials(self, password, email=None, username=None):
         if email:
             user = self.repository.find_user(email=email)
@@ -86,13 +83,8 @@ class UserManager:
         else:
             raise AuthException('wrong_token')
 
-    def logout(self):
-        # todo: update last logout stamp?
-        pass
-
-    def activate_email(self, reg_code):
-        # todo: ...
-        pass
+    def get_by_code(self, code):
+        return self.repository.find_user(code=code)
 
     def request_forgot_code(self, email=None, username=None):
         if email is not None:
@@ -146,3 +138,11 @@ class UserManager:
         self.repository.save()
 
         return user
+
+    def logout(self):
+        # todo: update last logout stamp?
+        pass
+
+    def activate_email(self, reg_code):
+        # todo: ...
+        pass

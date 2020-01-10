@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 
 from core.ctx import EntityBase
 from eme.data_access import GUID, JSON_GEN
-from eme.auth.repository import UserRepository as HeadRepository
+from eme.auth.repository import UserRepositoryBase
 from eme.data_access import Repository
 
 
@@ -38,8 +38,6 @@ class User(EntityBase):
         self.admin = kwargs.get('admin')
 
         # data conversion
-        if isinstance(self.wid, str):
-            self.wid = uuid.UUID(self.wid)
         if isinstance(self.uid, str):
             self.uid = uuid.UUID(self.uid)
 
@@ -55,7 +53,7 @@ class User(EntityBase):
 
 
 @Repository(User)
-class UserRepository(HeadRepository):
+class UserRepository(UserRepositoryBase):
 
     def list_some(self, N):
         return self.session.query(User)\

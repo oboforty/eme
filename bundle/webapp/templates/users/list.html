@@ -1,4 +1,4 @@
-{% extends "layout_admin.html" %}
+{% extends "layout.html" %}
 {% set active_page = "Users" %}
 
 {% block content_body %}
@@ -13,11 +13,7 @@
           <tr>
             <th>Email</th>
             <th>User</th>
-            <th>World</th>
-            <th>Town</th>
-            <th>Points</th>
             <th>Created</th>
-            <th>Last update</th>
           </tr>
         </thead>
         <tbody>
@@ -29,34 +25,8 @@
                 <a href="/user/edit?uid={{ uinfo.uid }}" title="{{ uinfo.uid }}">Edit</a>
             </td>
             <td>
-              {% if uinfo.wid %}
-                <a href="/world/edit?wid={{ uinfo.wid }}" title="{{ uinfo.wid }}">Edit</a>
-              {% else %}
-                None
-              {% endif %}
-            </td>
-            <td>
-              {% if uinfo.wid and not uinfo.iso %}
-                <b class="text-danger">! USER HAS NO TOWN !</b>
-              {% elif uinfo.iso %}
-                <a href="/town/edit?wid={{ uinfo.wid }}&iso={{ uinfo.iso }}">Edit</a>
-
-                <a href="/town/{{ uinfo.iso }}/adminview?wid={{ uinfo.wid }}">View</a>
-              {% else %}
-                None
-              {% endif %}
-            </td>
-            <td>
-              {{ points[uinfo.iso] }}
-            </td>
-            <td>
               {% if uinfo.created_at: %}
                 {{ uinfo.created_at.ctime() }}
-              {% endif %}
-            </td>
-            <td>
-              {% if uinfo.last_update: %}
-                {{ uinfo.last_update.ctime() }}
               {% endif %}
             </td>
           </tr>

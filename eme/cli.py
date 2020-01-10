@@ -30,7 +30,7 @@ class CommandLineInterface():
             method_name = 'run'
 
         cmd = self.commands[cmd_name]
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(argv)
 
         if hasattr(cmd, 'add_arguments'):
             # let the user handle the cmd arguments:
@@ -56,15 +56,22 @@ class CommandLineInterface():
                 else:
                     parser.add_argument(par_name, type=pee.annotation)
 
-        args = parser.parse_args(argv)
 
         # finally call the method using args
         method = getattr(cmd, method_name)
-        method(**vars(args))
+
+        if argv:
+            # call method with arguments parsed with argparse
+            args = parser.parse_args(argv)
+            method(**vars(args))
+        else:
+            # no command arguments
+            method()
 
     def run(self, argv=None):
         if argv is None:
             argv = sys.argv
+        argv = argv.copy()
 
         _script = argv.pop(0)
         cmd_name = argv.pop(0)

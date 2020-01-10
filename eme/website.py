@@ -24,8 +24,6 @@ class WebsiteApp(Flask):
         if len(config) == 0:
             raise Exception("Empty config file provided")
         conf = config['website']
-        crou = config['routing']
-        chead = config['headers']
 
         static_folder = join(fbase, conf.get('static_folder', 'public'))
         template_folder = join(fbase, conf.get('template_folder', 'templates'))
@@ -48,12 +46,11 @@ class WebsiteApp(Flask):
         #self.json_encoder = EntityJSONEncoder
 
         # Logging
-        # Logging
         logger = logging.getLogger(conf.get('logprefix', 'eme'))
         logger.setLevel(logging.DEBUG)
 
         # file log
-        fh = logging.FileHandler(conf.get('logfile', join(fbase+'logs.txt')))
+        fh = logging.FileHandler(conf.get('logfile', join(fbase, 'logs.txt')))
         lvl = conf.get('loglevel', 'WARNING')
         fh.setLevel(getattr(logging, lvl))
 
@@ -72,11 +69,11 @@ class WebsiteApp(Flask):
 
         # Load default controllers
         cdir = join(fbase, conf.get('controllers_dir'))
-        self.load_controllers(cdir, index=crou.get('INDEX'))
+        self.load_controllers(cdir, index=config.get('routing.__index__'))
 
         @self.after_request
         def after_request(response):
-            for name, val in chead.items():
+            for name, val in config['headers'].items():
                 response.headers[name] = val
 
             #if hasattr(response, 'api') and response.api:

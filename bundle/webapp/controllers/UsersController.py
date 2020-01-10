@@ -3,35 +3,40 @@ from email.utils import parseaddr
 from flask import render_template, request
 from werkzeug.utils import redirect
 
-from eme.auth import UserManager, AuthException
+from eme.auth import AuthException
 
 from webapp.services import mail, auth
 
 
 class UsersController():
 
-    def __init__(self, server):
-        self.server = server
-        self.name = "Users"
+    def __init__(self, app):
+        self.app = app
+
+        self.app.preset_endpoints({
+            # multiple routes for the same thing:
+            'GET /me': 'Users.get_index',
+            'GET /profile': 'Users.get_index',
+
+            # Further demonstrating custom routes
+            'GET /login': 'Users.get_login',
+            'GET /logout': 'Users.get_logout',
+            'GET /register': 'Users.get_register',
+        })
 
     @auth.login_required
     def get_index(self):
-        user = auth.get_user()
-
         return render_template('/users/profile.html',
            err=request.args.get('err')
         )
 
-
+    @auth.login_forbidden
     def get_login(self):
-        if auth.get_user().username:
-            return redirect('/')
-
         return render_template('/users/login.html',
            err=request.args.get('err')
         )
 
-
+    @auth.login_forbidden
     def post_login(self):
         username_or_email = request.form['email']
         password = request.form['password']
@@ -40,9 +45,9 @@ class UsersController():
         is_email = '@' in username_or_email
         try:
             if is_email:
-                user = auth.user_manager.authenticateCredentials(password, email=username_or_email)
+                user = auth.user_manager.get_by_credentials(password, email=username_or_email)
             else:
-                user = auth.user_manager.authenticateCredentials(password, username=username_or_email)
+                user = auth.user_manager.get_by_credentials(password, username=username_or_email)
 
             if user:
                 #login.logout()
@@ -56,16 +61,13 @@ class UsersController():
         except AuthException as e:
             return redirect('/users/login?err={}'.format(e.reason))
 
-
+    @auth.login_forbidden
     def get_register(self):
-        if auth.get_user().username:
-            return redirect('/users')
-
         return render_template('/users/register.html',
            err=request.args.get('err')
         )
 
-
+    @auth.login_forbidden
     def post_register(self):
         try:
             # todo: itt: update user with default user values
@@ -78,22 +80,19 @@ class UsersController():
         except AuthException as e:
             return redirect('/users/register?err={}'.format(e.reason))
 
-
     @auth.login_required
     def get_logout(self):
         auth.logout()
 
         return redirect('/users/login')
 
+    @auth.login_forbidden
     def get_forgot(self):
-        if auth.get_user().username:
-            return redirect('/users')
-
         return render_template('/users/forgot.html',
            err=request.args.get('err')
         )
 
-
+    @auth.login_forbidden
     def post_forgot(self):
         email = request.form['email']
         paddr = parseaddr(email)
@@ -101,7 +100,7 @@ class UsersController():
         if not paddr[1] == email:
             return ''
 
-        code = auth.user_manager.forgot(email)
+        code = auth.user_manager.request_forgot_code(email)
         if code:
             mail.send_mail(email, "Password reset", render_template('/mails/forgot.html', code=code))
 
@@ -109,14 +108,11 @@ class UsersController():
            err='forgot_sent'
         )
 
-
+    @auth.login_forbidden
     def get_reset(self):
-        if auth.get_user().username:
-            return redirect('/users')
-
         code = request.args['code']
 
-        user = auth.user_manager.authenticateCode(code)
+        user = auth.user_manager.get_by_code(code)
 
         if not user:
             return redirect('/users')
@@ -126,7 +122,7 @@ class UsersController():
            err=request.args.get('err')
         )
 
-
+    @auth.login_forbidden
     def post_reset(self):
         code = request.form['code']
         password = request.form['password']

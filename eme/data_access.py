@@ -85,7 +85,7 @@ class Repository(object):
 
     def __call__(self, cls):
         class Wrapped(cls):
-            T = self.type
+            cls.T = self.type
 
         if self.register:
             register_repository(self.type, cls)
