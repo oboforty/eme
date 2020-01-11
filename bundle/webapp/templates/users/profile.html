@@ -1,14 +1,16 @@
 {% extends "layout.html" %}
 
 
-{% block content_body %}
-  <div>
-    Hello
+{% block content %}
+  <div class="container">
+    <div class="jumbotron">
+      <h1 class="display-4">{{ current_user.username }}</h1>
 
-    {{ current_user.email }}
+      <p class="lead">Custom user page.</p>
+    </div>
+
+
   </div>
-
-  <a class="btn" href="/users/logout">Logout</a>
 {% endblock %}
 
 {% block scripts %}

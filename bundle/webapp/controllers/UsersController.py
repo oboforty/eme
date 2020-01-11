@@ -1,6 +1,6 @@
 from email.utils import parseaddr
 
-from flask import render_template, request
+from flask import render_template, request, url_for
 from werkzeug.utils import redirect
 
 from eme.auth import AuthException
@@ -50,8 +50,7 @@ class UsersController():
                 user = auth.user_manager.get_by_credentials(password, username=username_or_email)
 
             if user:
-                #login.logout()
-                auth.set_user(user, remember=remember)
+                auth.login_user(user, remember=remember)
 
                 next = request.args.get("next")
                 if next:
@@ -59,7 +58,7 @@ class UsersController():
                 else:
                     return redirect('/')
         except AuthException as e:
-            return redirect('/users/login?err={}'.format(e.reason))
+            return redirect(url_for('Users.get_login', err=e.reason))
 
     @auth.login_forbidden
     def get_register(self):
@@ -76,15 +75,15 @@ class UsersController():
 
             user = auth.user_manager.create(**userDict)
 
-            return redirect('/users/login?err=ok')
+            return redirect(url_for('Users.get_login', err='ok'))
         except AuthException as e:
-            return redirect('/users/register?err={}'.format(e.reason))
+            return redirect(url_for('Users.get_register', err=e.reason))
 
     @auth.login_required
     def get_logout(self):
         auth.logout()
 
-        return redirect('/users/login')
+        return redirect('/')
 
     @auth.login_forbidden
     def get_forgot(self):
@@ -115,7 +114,7 @@ class UsersController():
         user = auth.user_manager.get_by_code(code)
 
         if not user:
-            return redirect('/users')
+            return redirect('/')
 
         return render_template('/users/forgot_reset.html',
            code=code,
@@ -131,6 +130,6 @@ class UsersController():
         try:
             auth.user_manager.reset_password(code, password, password2)
 
-            return redirect('/users/login?err={}'.format("reset_success"))
+            return redirect(url_for('Users.get_login', err='reset_success'))
         except AuthException as e:
-            return redirect('/users/reset?err={}'.format(e.reason))
+            return redirect(url_for('Users.get_reset', err=e.reason))

@@ -48,6 +48,24 @@ class User(EntityBase):
             "token": self.token,
         }
 
+    def get_id(self):
+        return str(self.uid) if self.uid else None
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return self.uid is not None
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def __hash__(self):
+        return hash(self.uid)
+
     def __repr__(self):
         return "{}({}..)".format(self.username, str(self.uid)[0:4])
 

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='eme',
-      version='4.9.0',
+      version='4.9.1',
       description='Multi-purpose web framework',
       url='https://github.com/oboforty/eme',
       author='oboforty',
@@ -11,7 +11,7 @@ setup(name='eme',
       packages=['eme', 'eme/vendor', 'eme/auth'],
       entry_points={
           'console_scripts': [
-              'eti = snek:main',
+              #'eti = snek:main',
           ],
       },
       install_requires=[

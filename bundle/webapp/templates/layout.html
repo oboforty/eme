@@ -35,56 +35,53 @@
 
 </head>
 <body>
-  <nav class="navbar navbar-expand navbar-dark bg-primary">
-    <a class="navbar-brand" href="#">EME</a>
+
+  <nav class="navbar navbar-expand-md navbar-light bg-light">
+    <a class="navbar-brand" href="https://github.com/oboforty/eme" target="_blank">
+      <div class="bg-danger border border-dark p-2 rounded-circle text-white">EME</div>
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="bs-navbar">
-
-      <ul class="navbar-nav mx-auto">
-
+    <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+      <ul class="navbar-nav">
         {% for href, name in navigation_bar %}
         <li class="nav-item {% if name == active_page %}active{% endif %}">
           <a href="{{ href }}" class="nav-link"><span class="ra ra-2x ra-{{ name }}"></span></a>
         </li>
         {% endfor %}
+      </ul>
+    </div>
+<!--    <div class="mx-auto order-0">-->
+<!--      <a class="navbar-brand mx-auto" href="#">Navbar 2</a>-->
+<!--      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".dual-collapse2">-->
+<!--        <span class="navbar-toggler-icon"></span>-->
+<!--      </button>-->
+<!--    </div>-->
+    <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
 
-        {% if get_user().is_authenticated %}
-
+      {% if current_user.is_authenticated %}
+        <ul class="navbar-nav ml-auto">
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               {{ current_user.username }}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="/users">Profile</a>
+              <a class="dropdown-item" href="{{ url_for('Users.get_index') }}">Profile</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="/logout">Logout</a>
+              <a class="dropdown-item" href="{{ url_for('Users.get_logout') }}">Logout</a>
             </div>
           </li>
-        {% else %}
-          <div class="form-inline my-2 my-lg-0">
-
-            <form class="form-inline">
-              <div class="form-group mb-2">
-                <label for="staticEmail2" class="sr-only">Email</label>
-                <input type="text" class="form-control-plaintext" id="staticEmail2">
-              </div>
-              <div class="form-group mx-sm-3 mb-2">
-                <label for="inputPassword2" class="sr-only">Password</label>
-                <input type="password" class="form-control" id="inputPassword2" placeholder="Password">
-              </div>
-
-              <button type="submit" class="btn btn-primary mb-2">Sign in</button>
-            </form>
-          </div>
-        {% endif %}
-
-      </ul>
-
+        </ul>
+      {% else %}
+        <div class="navbar-nav ml-auto">
+          {% include 'users/login_navbar.html' %}
+        </div>
+      {% endif %}
     </div>
   </nav>
+
 
   {% block content %}{% endblock %}
 

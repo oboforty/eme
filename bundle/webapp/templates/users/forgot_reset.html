@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 
 
-{% block content_body %}
+{% block content %}
   <h2>Reset password</h2>
 
-  <form accept-charset="UTF-8" role="form" action="/users/reset" method="POST">
+  <form accept-charset="UTF-8" role="form" action="{{ url_for('Users.post_reset') }}" method="POST">
     <fieldset>
       <input name="code" type="hidden" value="{{ code }}">
 
@@ -16,7 +16,7 @@
         <input class="form-control" placeholder="New password again" name="password-confirm" type="password">
       </div>
 
-      <input class="btn btn-lg btn-brand btn-block" type="submit" value="Reset password">
+      <input class="btn btn-lg btn-danger btn-block" type="submit" value="Reset password">
     </fieldset>
   </form>
 

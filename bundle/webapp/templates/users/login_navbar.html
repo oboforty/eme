@@ -1,0 +1,12 @@
+<form class="form-inline" action="{{ url_for('Users.post_login') }}" method="POST">
+  <div class="form-group mb-2">
+    <label for="staticEmail2" class="sr-only">Email</label>
+    <input name="email" type="text" class="border border-dark bg-danger text-white form-control form-control-sm" id="staticEmail2">
+  </div>
+  <div class="form-group mx-sm-3 mb-2">
+    <label for="inputPassword2" class="sr-only">Password</label>
+    <input name="password" type="password" class="border border-dark bg-danger text-white form-control form-control-sm" id="inputPassword2" placeholder="Password">
+  </div>
+
+  <button type="submit" class="btn btn-sm btn-danger mb-2">Sign in</button>
+</form>

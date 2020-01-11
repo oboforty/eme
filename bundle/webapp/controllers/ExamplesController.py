@@ -27,10 +27,10 @@ class ExamplesController:
         # you can of course put this in a separated code, without the class
         @app.route('/example1')
         def custom_route1():
-            return render_template('/examples/custom_route.html', route=1)
+            return 'Custom route #1'
 
     def custom_route2(self):
-        return render_template('/examples/custom_route.html', route=2)
+        return 'Custom route #2'
 
     def custom_route3(self):
-        return render_template('/examples/custom_route.html', route=3)
+        return 'Custom route #3'

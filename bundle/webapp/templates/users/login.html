@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 
-{% block content_body %}
+{% block content %}
   <div class="d-flex justify-content-center h-100">
     <div class="card">
       <div class="card-header">
@@ -13,7 +13,7 @@
           <span class="text-danger align-middle">
             {% if err=='ok' %}
               Successful registration! You can log in.
-            {% elif err=='name_not_found' %}
+            {% elif err=='email_not_found' %}
               <i class="ra ra-close"> Email does not exist.</i>
             {% elif err=='wrong_password' %}
               <i class="ra ra-close"> Invalid password.</i>
@@ -34,7 +34,7 @@
               <input class="form-control" placeholder="Password" name="password" type="password" value="">
             </div>
 
-            <input class="btn btn-lg btn-brand btn-block" type="submit" value="Login">
+            <input class="btn btn-lg btn-danger btn-block" type="submit" value="Login">
 
             <div class="form-group">
               <div class="custom-control custom-checkbox">
@@ -47,7 +47,7 @@
         </form>
 
         <div class="text-center">
-          <a class="" href="/users/register">Register</a> | <a class="" href="/users/forgot">Forgot password</a>
+          <a class="" href="{{ url_for('Users.get_register') }}">Register</a> | <a class="" href="{{ url_for('Users.get_forgot') }}">Forgot password</a>
         </div>
       </div>
     </div>
