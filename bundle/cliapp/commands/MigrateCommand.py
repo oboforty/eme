@@ -9,14 +9,11 @@ from core.ctx import db_session, db_type, db_engine, EntityBase
 
 
 class MigrateCommand:
+    """
+    Command to run migrations on database.
+    """
     def __init__(self, cli):
-        self.commands = {
-            'migrate': {
-                'help': 'Run migrations for server',
-                'short': {},
-                'long': []
-            }
-        }
+        pass
 
     def run(self):
         # check if DB is populated

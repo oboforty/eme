@@ -1,16 +1,16 @@
 from unittest.mock import MagicMock, patch
 
 import flask
-from eme.entities import loadHandlers, EntityPatch
+from eme.entities import load_handlers, EntityPatch
 from flask import request
 
 from webapp.entities import ApiResponse
 
 obj_webapp = MagicMock()
-controllers = loadHandlers(obj_webapp, "Controller", "webapp/")
+controllers = load_handlers(obj_webapp, "Controller", "webapp/")
 
 obj_serverapp = MagicMock()
-groups = loadHandlers(obj_serverapp, "Group", "serverapp/")
+groups = load_handlers(obj_serverapp, "Group", "serverapp/")
 
 
 def mock_http(controller_action, form_data=None, **kwargs):

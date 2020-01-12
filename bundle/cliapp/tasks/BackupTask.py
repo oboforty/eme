@@ -1,8 +1,7 @@
 import shutil
 from datetime import datetime
 
-from eme.entities import loadConfig
-from engine import settings
+from eme.entities import load_settings
 
 
 class BackupTask:
@@ -15,7 +14,8 @@ class BackupTask:
         Backup database
         """
 
-        backup = loadConfig('cliapp/config.ini')['backup']
+        # todo: absolute path
+        backup = load_settings('cliapp/config.ini')
 
         dbfile = backup['db_file']
         backupfile = backup['file']

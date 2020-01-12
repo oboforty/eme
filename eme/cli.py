@@ -2,6 +2,7 @@ import logging
 import sys
 import argparse
 import inspect
+from os.path import join
 
 from eme.entities import load_handlers
 
@@ -16,7 +17,7 @@ class CommandLineInterface():
         self.prefix = "$eme~:"
         sys.path.append(fbase)
 
-        cdir = self.conf.get('cli.commands_dir', default='cliapp/commands')
+        cdir = join(fbase, self.conf.get('cli.commands_dir', default='commands'))
         self.commands = load_handlers(self, 'Command', cdir)
 
     def run_command(self, cmd_name, argv=None):
@@ -51,6 +52,10 @@ class CommandLineInterface():
                 if pee.annotation != inspect._empty:
                     if pee.annotation is bool:
                         argument = '--'+par_name
+
+                        if 'default' in kwargs:
+                            kwargs['required'] = False
+
                     elif pee.annotation is list:
                         kwargs['nargs'] = '+'
                     else:

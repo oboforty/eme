@@ -3,6 +3,6 @@ import unittest
 
 class ExampleIntegrationTest(unittest.TestCase):
 
-    def test_emperor_round(self):
+    def test_something(self):
 
         self.assertNotEqual(True, False)

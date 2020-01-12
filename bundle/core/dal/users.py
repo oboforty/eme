@@ -1,15 +1,13 @@
-import datetime
 import uuid
-from time import time
 
 from sqlalchemy import Column, Integer, String, Boolean, SmallInteger, ForeignKey, ForeignKeyConstraint, Date, DateTime, \
     TIMESTAMP, func, Float
-from sqlalchemy.orm import relationship
 
-from core.ctx import EntityBase
 from eme.data_access import GUID, JSON_GEN
 from eme.auth.repository import UserRepositoryBase
 from eme.data_access import Repository
+
+from core.ctx import EntityBase
 
 
 class User(EntityBase):
