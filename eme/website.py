@@ -1,4 +1,5 @@
 import logging
+import sys
 from collections import defaultdict
 from os.path import join
 
@@ -24,6 +25,7 @@ class WebsiteApp(Flask):
         if len(config) == 0:
             raise Exception("Empty config file provided")
         conf = config['website']
+        sys.path.append(fbase)
 
         static_folder = join(fbase, conf.get('static_folder', 'public'))
         template_folder = join(fbase, conf.get('template_folder', 'templates'))

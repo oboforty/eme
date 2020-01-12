@@ -8,7 +8,7 @@ from cliapp.migrations.guard import check_db, clear_db
 from core.ctx import db_session, db_type, db_engine, EntityBase
 
 
-class MigrateCommand():
+class MigrateCommand:
     def __init__(self, cli):
         self.commands = {
             'migrate': {
@@ -18,7 +18,7 @@ class MigrateCommand():
             }
         }
 
-    def run(self, *args):
+    def run(self):
         # check if DB is populated
         if not check_db():
             print("The database is not empty. Delete it? Y/n:", end="")

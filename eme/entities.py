@@ -7,21 +7,19 @@ from importlib import import_module
 from json import JSONEncoder
 from uuid import UUID
 
+import inflect
+
 
 def load_handlers(ctx, dirType, path=None):
     cL = len(dirType)
 
+    p = inflect.engine()
+    # smart-guess: plural handler type
+    module_path = p.plural_noun(dirType).lower()
+
     if path is None or not path:
-        # smart-guess: path is local path + plural handler type
-        path = dirType.lower() + 's'
-        module_path = os.path.normpath(path)
-    else:
-        if os.path.isabs(path):
-            # resolve absolute path to
-            pathx = os.path.normpath(path).replace(os.path.normpath(os.getcwd()), '')
-        else:
-            pathx = os.path.normpath(path)
-        module_path = pathx.replace("//", '.').replace("/", '.').replace('\\', '.')
+        # guess path = module
+        path = module_path
 
     if module_path[0] == '.':
         module_path = module_path[1:]

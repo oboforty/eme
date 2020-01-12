@@ -8,19 +8,15 @@ from eme.entities import load_settings
 class ToolsCommandLineInterface(CommandLineInterface):
 
     def __init__(self):
-        script_path = dirname(realpath(__file__))
-        conf = load_settings(join(script_path, 'config.ini'))
+        self.script_path = dirname(realpath(__file__))
+        conf = load_settings(join(self.script_path, 'config.ini'))
 
-        super().__init__(conf, script_path)
+        super().__init__(conf, self.script_path)
 
 
 def main():
     app = ToolsCommandLineInterface()
-
-    if len(sys.argv) > 1:
-        app.run(sys.argv)
-    else:
-        app.start()
+    app.run(sys.argv)
 
 
 if __name__ == '__main__':
