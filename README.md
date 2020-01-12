@@ -1,6 +1,11 @@
 # ![alt eme](https://github.com/oboforty/eme/blob/master/logo.png "EME") eme
 Python web framework built on flask.
 
+## Documentation
+
+Check out the wiki
+
+
 ## Features
 
 - Website
