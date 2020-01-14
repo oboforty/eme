@@ -44,10 +44,7 @@ class EntityCommand:
 
             if etype == 'str': etype = 'String'
             elif etype == 'int': etype = 'Integer'
-            elif etype == 'uuid':
-                etype = 'uuid'
-                modi = ', default=uuid.uuid4'
-            elif etype == 'guid':
+            elif etype == 'uuid' or etype == 'guid':
                 etype = 'GUID'
                 modi = ', default=uuid.uuid4'
             elif etype == 'timestamp' or etype == 'unix':
@@ -94,10 +91,10 @@ class EntityCommand:
             param = '{0}: {1}'.format(ename, etype)
             if edef:
                 param += ' = {}'.format(edef)
-            attr_param_content += param
+            attr_param_content.append(param)
 
             # setters
-            attr_set_content += '\n        {0}.{1} = {2}'.format(name, ename, etype)
+            attr_set_content += '\n        {0}.{1} = {1}'.format(name.lower(), ename)
 
         attr_param_content = ', '.join(attr_param_content)
 
@@ -110,8 +107,8 @@ class EntityCommand:
             "setters": attr_set_content,
         })
 
-        # Write Entity class & Repository
-        with open('core/dal/{}.py'.format(name_plural), 'w') as fh:
+        # Write command
+        with open('cliapp/commands/{}Command.py'.format(name_plural.title()), 'w') as fh:
             fh.write(file_content)
 
     def parse_entlist(self, entraw):

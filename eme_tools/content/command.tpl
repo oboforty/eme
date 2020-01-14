@@ -8,13 +8,15 @@ class {entities_t}Command:
 
     def run_create(self, {params}):
         {evar} = {entity}()
-
         {setters}
+
+        self.repo.create({evar})
 
     def run_edit(self, uid, {params}):
         {evar} = self.repo.get(uid)
-
         {setters}
+
+        self.repo.save()
 
     def run_delete(self, uid):
         {evar} = self.repo.get(uid)
