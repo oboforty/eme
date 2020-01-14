@@ -12,9 +12,7 @@ class EntityCommand:
         ents = self.parse_entlist(entraw)
 
         self.write_entity(name, ents)
-
-        # todo: cli CRUD commands
-        #self.write_command(name, ents)
+        self.write_command(name, ents)
 
         # todo: fixture & factory & default values
         #self.write_factory(name, ents)
@@ -74,6 +72,42 @@ class EntityCommand:
             "attr_def": attr_def_content,
             "attr_init": attr_init_content,
             "attr_view": attr_view_content,
+        })
+
+        # Write Entity class & Repository
+        with open('core/dal/{}.py'.format(name_plural), 'w') as fh:
+            fh.write(file_content)
+
+    def write_command(self, name, ents):
+        p = inflect.engine()
+        name_plural = p.plural_noun(name).lower()
+        file_entitytpl = join(self.dbase, 'content', 'command.tpl')
+
+        with open(file_entitytpl) as fh:
+            command_tpl = fh.read()
+
+        attr_param_content = []
+        attr_set_content = ""
+
+        for (ename, etype, edef, _) in ents:
+            # command param
+            param = '{0}: {1}'.format(ename, etype)
+            if edef:
+                param += ' = {}'.format(edef)
+            attr_param_content += param
+
+            # setters
+            attr_set_content += '\n        {0}.{1} = {2}'.format(name, ename, etype)
+
+        attr_param_content = ', '.join(attr_param_content)
+
+        file_content = command_tpl.format(**{
+            "entities": name_plural,
+            "entities_t": name_plural.title(),
+            "entity": name.title(),
+            "evar": name.lower(),
+            "params": attr_param_content,
+            "setters": attr_set_content,
         })
 
         # Write Entity class & Repository
