@@ -41,3 +41,8 @@ zipdir(zipf, 'testapp')
 zipf.write('cli.py', 'cli.py')
 zipf.close()
 os.replace('testapp.zip', '../eme_tools/content/testapp.zip')
+
+zipf = zipfile.ZipFile('core.zip', 'w', zipfile.ZIP_DEFLATED)
+zipdir(zipf, 'core')
+zipf.close()
+os.replace('core.zip', '../eme_tools/content/core.zip')

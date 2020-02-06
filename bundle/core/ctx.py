@@ -10,7 +10,7 @@ config = load_settings("core/content/ctx.ini")
 db_type = config.get('db.type')
 
 # an Engine, which the Session will use for connection resources
-if db_type == 'postgres':
+if db_type == 'sqlite':
     db_engine = create_engine('sqlite:///{file}'.format(**config[db_type]), connect_args={'check_same_thread': False})
 else:
     if 'driver' in config[db_type]:

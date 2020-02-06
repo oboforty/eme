@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='eme',
-      version='1.5.0.4',
+      version='1.5.0.5',
       description='Multi-purpose web framework',
       url='https://github.com/oboforty/eme',
       author='oboforty',
