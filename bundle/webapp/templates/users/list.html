@@ -22,7 +22,7 @@
             <td>{{ uinfo.email }}</td>
             <td>
               {{ uinfo.username }}
-                <a href="/user/edit?uid={{ uinfo.uid }}" title="{{ uinfo.uid }}">Edit</a>
+                <a href="{{ url_for('Users.get_edit', uid=uinfo.uid) }}" title="{{ uinfo.uid }}">Edit</a>
             </td>
             <td>
               {% if uinfo.created_at: %}

@@ -20,9 +20,6 @@ class ExampleWebsite(WebsiteApp):
         auth.init(self, conf['auth'])
         mail.init_mail(self, conf['mail'])
 
-        with open('core/content/version.txt') as fh:
-            self.version = fh.readline()
-
 
 if __name__ == "__main__":
     app = ExampleWebsite()

@@ -20,7 +20,7 @@ let client = new (function(){
 
     if (!params.route)
         console.error("No route defined for request: ", params);
-      // todo: itt
+
     params.msid = this.c_msid++;
     console.log(`%c<${route} (${params.msid})`, client.log_style, params);
 
@@ -52,7 +52,6 @@ let client = new (function(){
     this.ws.onclose = function(event) {
       console.log("%cDisconnected from websocket", client.log_style);
 
-      // todo: display disconnected message
       if (client.disconnected)
         client.disconnected();
       //client.reconnect();

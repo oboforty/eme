@@ -10,7 +10,7 @@
       </div>
       <div class="card-body card-paper" style="min-width: 420px;">
 
-        <form accept-charset="UTF-8" role="form" action="/user/edit" method="POST">
+        <form accept-charset="UTF-8" role="form" action="{{ url_for('Users.post_edit') }}" method="POST">
           <fieldset>
             <input type="hidden" name="uid" value="{{ uinfo.uid }}" />
 

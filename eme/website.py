@@ -102,11 +102,11 @@ class WebsiteApp(Flask):
         for new_url, endpoint in rules.items():
             self.preset_endpoint(new_url, endpoint)
 
-    def load_controllers(self, path=None, index=None):
+    def load_controllers(self, path=None, index=None, class_name="Controller"):
         print('{0: <7}{1: <20}{2: <20} >    {3}'.format("OPT", "ROUTE", "ENDPOINT", "ACTION"))
 
         # automatically parses custom
-        controllers = load_handlers(self, "Controller", path)
+        controllers = load_handlers(self, class_name, path)
 
         for controller_name, controller in controllers.items():
             for method_name in dir(controller):
