@@ -17,8 +17,8 @@ class CommandLineInterface():
         self.prefix = "$eme~:"
         sys.path.append(fbase)
 
-        cdir = join(fbase, self.conf.get('cli.commands_dir', default='commands'))
-        self.commands = load_handlers(self, 'Command', cdir)
+        cmdir = self.conf.get('cli.commands_dir', default='commands')
+        self.commands = load_handlers(self, 'Command', cmdir, prefix_path=fbase)
 
     def run_command(self, cmd_name, argv=None):
         if ':' in cmd_name:

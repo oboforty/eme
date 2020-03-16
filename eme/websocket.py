@@ -1,194 +1,146 @@
+import inspect
 import json
-import logging
 import signal
+from types import SimpleNamespace
+
+import websockets
+import asyncio
+import logging
 import sys
+from os.path import join
 
-from .vendor.websocket import SimpleWebSocketServer, WebSocket
-from .entities import loadHandlers, EntityJSONEncoder, EntityPatch
+from eme.entities import load_handlers, EntityJSONEncoder
 
 
-class WSClient(WebSocket):
-    def __init__(self, server, sock, address):
-        super().__init__(server, sock, address)
+class EmeWebsocketClient(websockets.WebSocketServerProtocol):
+    def __init__(self, **kwargs):
         self.user = None
-        self.last_msid = None
-        self.msid = None
 
-    def handleMessage(self):
-        self.server.message_received(self, self.data)
-
-    def handleError(self, e):
-        self.server.message_error(self, e)
-
-    def handleConnected(self):
-        self.server.client_connected(self)
-
-    def handleClose(self):
-        self.server.client_left(self)
+        super().__init__(**kwargs)
 
 
-class WebsocketApp(SimpleWebSocketServer):
-
-    def __init__(self, config: dict):
+class WebsocketApp():
+    def __init__(self, config: dict, fbase='wsapp'):
+        if len(config) == 0:
+            raise Exception("Empty config file provided")
         conf = config['websocket']
-        crou = config['routing']
-        chead = config['headers']
+        sys.path.append(fbase)
 
-        # Socket
-        self.host = conf.get('host')
-        self.port = int(conf.get('port'))
-        self.debug = conf.get('debug') == 'yes'
+        self.host = conf.get('host', '0.0.0.0')
+        self.port = conf.get('port')
 
-        # Clients
+        self.debug = conf.get('debug')
+
+        # ws handler
+        signal.signal(signal.SIGINT, self.close_sig_handler)
         self.clients = {}
-        self.cliN = 0
-        self.no_auth = set()
-
-        # Routing
-        self.addRouting(crou)
-
-        # Groups
-        self.groups = loadHandlers(self, "Group", prefix=conf.get('groups_folder'))
+        self.func_params = {}
+        self.groups = load_handlers(self, "Group", conf.get('groups_dir'), prefix_path=fbase)
 
         # Logging
-        if not conf.get('debug'):
-            logging.basicConfig(filename=conf.get('log_file'), level=logging.WARNING)
-            formatter = logging.Formatter(conf.get('log_format', '%(asctime)s %(levelname)s %(message)s'))
-            logger = logging.getLogger(conf.get('log_prefix', 'web'))
-            logger.addHandler(formatter)
+        logger = logging.getLogger(conf.get('logprefix', 'eme'))
+        logger.setLevel(logging.DEBUG)
 
-            logging.info("Geopoly: {}:{}".format(self.host, self.port))
+        # file log
+        fh = logging.FileHandler(conf.get('logfile', join(fbase, 'logs.txt')))
+        lvl = conf.get('loglevel', 'WARNING')
+        fh.setLevel(getattr(logging, lvl))
 
-        else:
-            print("Geopoly: Listening on port %d for clients.." % self.port)
+        # console log
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.ERROR)
 
-        super().__init__(port=self.port, host=self.host, websocketclass=WSClient)
-        signal.signal(signal.SIGINT, self.close_sig_handler)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+        ch.setFormatter(formatter)
+        fh.setFormatter(formatter)
+
+        logger.addHandler(ch)
+        logger.addHandler(fh)
+
+        self.logger = logger
 
     def close_sig_handler(self, signal, frame):
         self.close()
-        sys.exit()
 
-    def client_connected(self, client):
-        if not self.debug:
-            logging.info(str(client.address) + ' connected')
+    def allow_message(self, route, rws):
+        return True
 
-        client.id = self.cliN
-        self.clients[client.id] = client
-        self.cliN += 1
+    def build_request(self, ws, rws, route):
+        return SimpleNamespace(route=route, data=rws, client=ws)
 
-    def client_left(self, client):
-        if not self.debug:
-            logging.info(str(client.address) + ' left')
+    async def handle_requests(self, websocket, path):
+        async for message in websocket:
+            rws = json.loads(message)
 
-        del self.clients[client.id]
+            # get action
+            route = rws.pop("route", ':')
+            group, method = route.split(":")
+            groups = group.split('/')
+            group = groups.pop(0)
+            if len(groups) > 0:
+                method = method + '_' + '_'.join(groups)
 
-    def message_received(self, client, message):
-        if not self.debug:
-            logging.info(">" + message)
-        rws = json.loads(message)
-
-        authorize_req = rws['route'] not in self.no_auth
-        if not client.user and authorize_req:
-            print("Auth failed")
-            return
-
-        # get action
-        route = rws.pop("route", ':')
-        group, method = route.split(":")
-        groups = group.split('/')
-        group = groups.pop(0)
-        if len(groups) > 0:
-            method = method + '_' + '_'.join(groups)
-
-        msid = rws.pop('msid', None)
-        client.msid = msid
-        if msid:
-            client.last_msid = msid
-
-        action = getattr(self.groups[group], method)
-
-        params = self._forgeParams(rws)
-        if authorize_req:
-            params['user'] = client.user
-        else:
-            params['client'] = client
-        try:
-            response = action(**params)
-
-            # automatic sending of response message (HTTP-like response for request)
-            if isinstance(response, dict):
-                if 'route' not in response:
-                    response['route'] = route
-                if msid is not None:
-                    response['msid'] = msid
-
-                self.send(response, client)
-            elif isinstance(response, list):
-                for resp in response:
-                    if 'route' not in resp:
-                        resp['route'] = route
-                    if msid is not None:
-                        resp['msid'] = msid
-                    self.send(resp, client)
-
-        except Exception as e:
-            logging.exception("METHOD")
-
-            if self.debug:
-                print(e)
-                raise e  # does not work because vendor is shit
-
-    def dispose(self):
-        if not self.debug:
-            logging.info("Server exited")
-
-    def send(self, rws, client):
-        # send to client
-        if isinstance(client, int):
-            if client not in self.clients:
+            if not self.allow_message(route, rws):
                 return
-            client = self.clients[client]
 
-        client.sendMessage(json.dumps(rws, cls=EntityJSONEncoder))
+            #msid = rws.pop('msid', None)
 
-    def broadcast(self, rws):
-        # broadcast message
-        for clientId, client in self.clients.items():
-            client.sendMessage(json.dumps(rws, cls=EntityJSONEncoder))
+            action = getattr(self.groups[group], method)
 
-    def sendRaw(self, rwsJSON, client):
-        client.sendMessage(rwsJSON)
+            if route not in self.func_params:
+                # find out what the function requires
+                sig = inspect.signature(action)
+                self.func_params[route] = list(sig.parameters.keys())
 
-    def _forgeParams(self, rws):
-        params = {}
-        for param, val in rws.items():
-            if isinstance(val, dict):
-                params[param] = EntityPatch(val)
-            elif isinstance(val, list):
-                params[param] = []
-                for elem in val:
-                    if isinstance(elem, dict):
-                        params[param].append(self._forgeParams(elem))
-                    else:
-                        params[param].append(elem)
-            else:
-                params[param] = val
+            param_names = self.func_params[route]
+            params = {}
 
-        return params
+            if 'request' in param_names:
+                params['request'] = self.build_request(websocket, rws, route)
 
-    def addRouting(self, routing):
-        for route, policy in routing.items():
+            if 'user' in param_names:
+                if not hasattr(websocket, 'user') or websocket.user is None:
+                    # user authentication required, error
+                    return None
+                params['user'] = websocket.user
+            if 'client' in param_names:
+                params['client'] = websocket
 
-            if policy == 'guest':
-                self.no_auth.append(route)
+            # execute function
+            try:
+                response = await action(**params)
+
+                if response is not None:
+                    await self.send(response, websocket, route=route)
+
+            except Exception as e:
+                logging.exception("METHOD")
+
+                if self.debug:
+                    raise e
 
     def start(self):
-        self.serveforever()
+        print("Websocket: listening on {}:{}".format(self.host, self.port))
 
-    def message_error(self, client, e):
-        print(e)
+        asyncio.get_event_loop().run_until_complete(
+            #  klass=EmeWebsocketClient
+            websockets.serve(self.handle_requests, self.host, self.port))
+        asyncio.get_event_loop().run_forever()
 
-        if not self.debug:
-            logging.exception("Server")
+    def close(self):
+        print("Exited websocket server")
+        sys.exit()
 
+    async def send(self, rws, client, route=None):
+        if isinstance(rws, dict):
+            if route is not None:
+                rws['route'] = route
+
+            await client.send(json.dumps(rws, cls=EntityJSONEncoder))
+        elif isinstance(rws, str):
+            await client.send(rws)
+        elif isinstance(rws, list):
+            for rw_ in rws:
+                await self.send(rw_, client, route=route)
+        else:
+            raise Exception("Unsupported message type: {}".format(type(rws)))

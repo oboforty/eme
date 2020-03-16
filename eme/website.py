@@ -15,6 +15,7 @@ class RegexConverter(BaseConverter):
         self.regex = items[0]
 
 http_verbs = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+CTRL_ATTRIBUTES = ['server', 'app']
 
 
 class WebsiteApp(Flask):
@@ -48,30 +49,29 @@ class WebsiteApp(Flask):
         #self.json_encoder = EntityJSONEncoder
 
         # Logging
-        logger = logging.getLogger(conf.get('logprefix', 'eme'))
-        logger.setLevel(logging.DEBUG)
-
-        # file log
-        fh = logging.FileHandler(conf.get('logfile', join(fbase, 'logs.txt')))
-        lvl = conf.get('loglevel', 'WARNING')
-        fh.setLevel(getattr(logging, lvl))
-
-        # console log
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.ERROR)
-
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-        ch.setFormatter(formatter)
-        fh.setFormatter(formatter)
-
-        logger.addHandler(ch)
-        logger.addHandler(fh)
-
-        self.logger = logger
+        # logger = logging.getLogger(conf.get('logprefix', 'eme'))
+        # logger.setLevel(logging.DEBUG)
+        #
+        # # file log
+        # fh = logging.FileHandler(conf.get('logfile', join(fbase, 'logs.txt')))
+        # lvl = conf.get('loglevel', 'WARNING')
+        # fh.setLevel(getattr(logging, lvl))
+        #
+        # # console log
+        # ch = logging.StreamHandler()
+        # ch.setLevel(logging.ERROR)
+        #
+        # formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+        # ch.setFormatter(formatter)
+        # fh.setFormatter(formatter)
+        #
+        # logger.addHandler(ch)
+        # logger.addHandler(fh)
+        #
+        # self.logger = logger
 
         # Load default controllers
-        cdir = join(fbase, conf.get('controllers_dir'))
-        self.load_controllers(cdir, index=config.get('routing.__index__'))
+        self.load_controllers('Controller', fbase, conf.get('controllers_dir'), index=config.get('routing.__index__'))
 
         @self.after_request
         def after_request(response):
@@ -102,17 +102,24 @@ class WebsiteApp(Flask):
         for new_url, endpoint in rules.items():
             self.preset_endpoint(new_url, endpoint)
 
-    def load_controllers(self, path=None, index=None, class_name="Controller"):
+    def load_controllers(self, class_name, fbase=None, path=None, index=None):
         print('{0: <7}{1: <20}{2: <20} >    {3}'.format("OPT", "ROUTE", "ENDPOINT", "ACTION"))
 
         # automatically parses custom
-        controllers = load_handlers(self, class_name, path)
+        controllers = load_handlers(self, class_name, path, prefix_path=fbase)
 
         for controller_name, controller in controllers.items():
+            if not hasattr(controller, 'group'):
+                controller.group = controller_name
+            if not hasattr(controller, 'route'):
+                controller.route = controller.group.lower()
+
             for method_name in dir(controller):
                 method = getattr(controller, method_name)
 
-                if method_name.startswith("__") or method_name in ["rws", "server"] or not callable(method):
+                if method_name.startswith("__") or not callable(method):
+                    continue
+                if method in CTRL_ATTRIBUTES:
                     continue
 
                 option = "GET"
@@ -124,14 +131,14 @@ class WebsiteApp(Flask):
                     action_name = '_'.join(methods)
 
                 # default route without action is index
-                if index == controller_name + '.' + method_name:
+                if index == controller.group + '.' + method_name:
                     route = "/"
                 elif method_name == "index" or action_name == "":
-                    route = "/" + controller_name.lower()
+                    route = "/" + controller.route
                 else:
-                    route = "/" + controller_name.lower() + "/" + action_name
+                    route = "/" + controller.route + "/" + action_name
 
-                endpoint = controller_name + '.' + option.lower() + '_' + action_name
+                endpoint = controller.group + '.' + option.lower() + '_' + action_name
                 #endpoint = option.lower() + '__' + route[1:]
                 if endpoint[-1] == '_':
                     endpoint += 'index'
@@ -149,7 +156,7 @@ class WebsiteApp(Flask):
                 #     continue
 
                 for route in routes:
-                    print('{0: <7}{1: <20}{2: <20} >    {3}'.format(option, route, endpoint, controller_name + "." + method_name))
+                    print('{0: <7}{1: <20}{2}'.format(option, route, endpoint))
                     self.add_url_rule(route, endpoint, getattr(controller, method_name), methods=[option])
 
                 #self.view_functions

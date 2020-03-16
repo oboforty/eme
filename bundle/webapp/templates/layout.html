@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 {% set navigation_bar = [
-  ('/', 'Home'),
+  ('/', 'Welcome'),
 ] -%}
-{% set active_page = 'index' -%}
+{% set active_page = active_page | default('index') -%}
 {% set title = active_page + ' - EME Example website' %}
 
 <html>
@@ -48,7 +48,7 @@
       <ul class="navbar-nav">
         {% for href, name in navigation_bar %}
         <li class="nav-item {% if name == active_page %}active{% endif %}">
-          <a href="{{ href }}" class="nav-link"><span class="ra ra-2x ra-{{ name }}"></span></a>
+          <a href="{{ href }}" class="nav-link">{{ name }}</a>
         </li>
         {% endfor %}
       </ul>

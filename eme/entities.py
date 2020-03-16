@@ -10,31 +10,28 @@ from uuid import UUID
 import inflect
 
 
-def load_handlers(ctx, dirType, path=None):
-    cL = len(dirType)
+def load_handlers(ctx, class_name, path=None, prefix_path=None):
 
-    p = inflect.engine()
-    # smart-guess: plural handler type
-    module_path = p.plural_noun(dirType).lower()
+    if path is None:
+        # smart-guess: plural handler type
+        p = inflect.engine()
+        path = p.plural_noun(class_name).lower()
 
-    if path is None or not path:
-        # guess path = module
-        path = module_path
+    module_path = path.replace(os.sep, '.').replace(os.altsep, '.').lstrip('.').rstrip('.')
 
-    if module_path[0] == '.':
-        module_path = module_path[1:]
+    if prefix_path is not None:
+        path = os.path.join(prefix_path, path)
 
-    handlerNames = [os.path.splitext(f)[0] for f in sorted(os.listdir(path)) if os.path.splitext(f)[0][-cL:] == dirType]
+    handlerNames = [os.path.splitext(f)[0] for f in sorted(os.listdir(path)) if f.endswith(class_name+'.py')]
     handlers = {}
 
     for moduleName in handlerNames:
         module = import_module(module_path + "." + moduleName)
         handlerClass = getattr(module, moduleName)
         handler = handlerClass(ctx)
-        handlers[moduleName[:-cL]] = handler
+        handlers[moduleName[:-len(class_name)]] = handler
 
     return handlers
-
 
 def load_config(file):
     config = configparser.ConfigParser()
