@@ -6,7 +6,7 @@ class BundleCommand:
     def __init__(self, cli):
         self.dbase = cli.script_path
 
-    def run(self, name: str, auth: bool = True, cli: bool = True, examples: bool = True, frontend: bool = True, core: bool = True, postgres: bool = False, mysql: bool = False, oracle: bool = False):
+    def run(self, name: str, auth: bool = True, cli: bool = True, examples: bool = True, websocket: bool = True, frontend: bool = True, core: bool = True, postgres: bool = False, mysql: bool = False, oracle: bool = False):
         if os.path.exists(name):
             raise Exception("Project already exists: {}!".format(name))
 
@@ -27,6 +27,14 @@ class BundleCommand:
             if not examples:
                 # delete examples from other cli
                 os.remove(os.path.join(name, 'cliapp', 'commands', 'HelloCommand.py'))
+
+        if websocket:
+            with zipfile.ZipFile(os.path.join(self.dbase, 'content', prefix+'ws.zip'), 'r') as zip_ref:
+                zip_ref.extractall(name)
+
+            if not examples:
+                # delete examples from other cli
+                os.remove(os.path.join(name, 'wsapp', 'groups', 'ExampleGroup.py'))
 
         if examples:
             with zipfile.ZipFile(os.path.join(self.dbase, 'content', prefix+'testapp.zip'), 'r') as zip_ref:

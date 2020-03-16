@@ -30,6 +30,12 @@ zipf.write('run.py', 'run.py')
 zipf.close()
 os.replace('webapp.zip', '../eme_tools/content/webapp.zip')
 
+zipf = zipfile.ZipFile('wsapp.zip', 'w', zipfile.ZIP_DEFLATED)
+zipdir(zipf, 'wsapp')
+zipf.write('runws.py', 'runws.py')
+zipf.close()
+os.replace('wsapp.zip', '../eme_tools/content/wsapp.zip')
+
 zipf = zipfile.ZipFile('cliapp.zip', 'w', zipfile.ZIP_DEFLATED)
 zipdir(zipf, 'cliapp')
 zipf.write('cli.py', 'cli.py')

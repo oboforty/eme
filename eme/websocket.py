@@ -83,9 +83,16 @@ class WebsocketApp():
             if not self.allow_message(route, rws):
                 return
 
-            #msid = rws.pop('msid', None)
+            msid = rws.pop('msid', None)
 
-            action = getattr(self.groups[group], method)
+            try:
+                action = getattr(self.groups[group], method)
+            except:
+                logging.error("Route not found {}".format(route))
+
+                if self.debug:
+                    raise Exception("Route not found {}".format(route))
+                return
 
             if route not in self.func_params:
                 # find out what the function requires
@@ -94,6 +101,9 @@ class WebsocketApp():
 
             param_names = self.func_params[route]
             params = {}
+
+            if 'msid' in param_names:
+                param_names['msid'] = msid
 
             if 'request' in param_names:
                 params['request'] = self.build_request(websocket, rws, route)
@@ -111,7 +121,7 @@ class WebsocketApp():
                 response = await action(**params)
 
                 if response is not None:
-                    await self.send(response, websocket, route=route)
+                    await self.send(response, websocket, route=route, msid=msid)
 
             except Exception as e:
                 logging.exception("METHOD")
@@ -131,10 +141,13 @@ class WebsocketApp():
         print("Exited websocket server")
         sys.exit()
 
-    async def send(self, rws, client, route=None):
+    async def send(self, rws, client, route=None, msid=None):
         if isinstance(rws, dict):
             if route is not None:
                 rws['route'] = route
+
+            if msid is not None:
+                rws['msid'] = msid
 
             await client.send(json.dumps(rws, cls=EntityJSONEncoder))
         elif isinstance(rws, str):
