@@ -1,3 +1,4 @@
+import inspect
 import logging
 import sys
 from collections import defaultdict
@@ -130,16 +131,8 @@ class WebsiteApp(Flask):
                     option = methods.pop(0).upper()
                     action_name = '_'.join(methods)
 
-                # default route without action is index
-                if index == controller.group + '.' + method_name:
-                    route = "/"
-                elif method_name == "index" or action_name == "":
-                    route = "/" + controller.route
-                else:
-                    route = "/" + controller.route + "/" + action_name
-
+                # define endpoint (used in eme//flask internally)
                 endpoint = controller.group + '.' + option.lower() + '_' + action_name
-                #endpoint = option.lower() + '__' + route[1:]
                 if endpoint[-1] == '_':
                     endpoint += 'index'
 
@@ -147,7 +140,26 @@ class WebsiteApp(Flask):
                 if endpoint in self._custom_routes:
                     routes = self._custom_routes[endpoint]
                 else:
-                    # otherwise there's only one possible route for this endpoint
+                    # otherwise eme automatically guesses the route
+                    if index == controller.group + '.' + method_name:
+                        # default route without action is index
+                        route = "/"
+                    elif method_name == "index" or action_name == "":
+                        route = "/" + controller.route
+                    else:
+                        route = "/" + controller.route + "/" + action_name
+
+                    # modify route with url's input params:
+                    sig = inspect.signature(method)
+                    for par_name, par in sig.parameters.items():
+                        if par.annotation != inspect._empty:
+                            inp = f'/<{par.annotation}:{par_name}>'
+                        else:
+                            inp = f'/<{par_name}>'
+
+                        route += inp
+
+                    # fake set:
                     routes = {route}
 
                 # todo: stop reconfiguring the same route, not endpoint!

@@ -4,10 +4,12 @@ import signal
 from types import SimpleNamespace
 
 import websockets
+from websockets.protocol import State
 import asyncio
 import logging
 import sys
 from os.path import join
+
 
 from eme.entities import load_handlers, EntityJSONEncoder
 
@@ -142,6 +144,9 @@ class WebsocketApp():
         sys.exit()
 
     async def send(self, rws, client, route=None, msid=None):
+        if client.state is State.CLOSED:
+            return
+
         if isinstance(rws, dict):
             if route is not None:
                 rws['route'] = route

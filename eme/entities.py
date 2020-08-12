@@ -17,7 +17,7 @@ def load_handlers(ctx, class_name, path=None, prefix_path=None):
         p = inflect.engine()
         path = p.plural_noun(class_name).lower()
 
-    module_path = path.replace(os.sep, '.').replace(os.altsep, '.').lstrip('.').rstrip('.')
+    module_path = path.replace(os.sep, '.').lstrip('.').rstrip('.')
 
     if prefix_path is not None:
         path = os.path.join(prefix_path, path)
