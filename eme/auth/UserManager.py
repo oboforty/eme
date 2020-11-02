@@ -65,7 +65,7 @@ class UserManager:
             if not user:
                 raise AuthException('user_not_found')
 
-        if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+        if bcrypt.checkpw(user.password.encode('utf-8'), password.encode('utf-8')):
             user.token = get_token(user)
             self.repository.save()
 

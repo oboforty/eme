@@ -141,9 +141,10 @@ class WebsiteApp(Flask):
                     routes = self._custom_routes[endpoint]
                 else:
                     # otherwise eme automatically guesses the route
-                    if index == controller.group + '.' + method_name:
+                    if index == endpoint:
                         # default route without action is index
                         route = "/"
+                        # todo: index controller other actions?
                     elif method_name == "index" or action_name == "":
                         route = "/" + controller.route
                     else:
@@ -152,8 +153,8 @@ class WebsiteApp(Flask):
                     # modify route with url's input params:
                     sig = inspect.signature(method)
                     for par_name, par in sig.parameters.items():
-                        if par.annotation != inspect._empty:
-                            inp = f'/<{par.annotation}:{par_name}>'
+                        if par.annotation != inspect._empty or par.annotation is str:
+                            inp = f'/<{par.annotation.__name__}:{par_name}>'
                         else:
                             inp = f'/<{par_name}>'
 

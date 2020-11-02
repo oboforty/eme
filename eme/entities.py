@@ -11,7 +11,6 @@ import inflect
 
 
 def load_handlers(ctx, class_name, path=None, prefix_path=None):
-
     if path is None:
         # smart-guess: plural handler type
         p = inflect.engine()
@@ -22,16 +21,23 @@ def load_handlers(ctx, class_name, path=None, prefix_path=None):
     if prefix_path is not None:
         path = os.path.join(prefix_path, path)
 
-    handlerNames = [os.path.splitext(f)[0] for f in sorted(os.listdir(path)) if f.endswith(class_name+'.py')]
+    handlerNames = [os.path.splitext(f)[0] for f in sorted(os.listdir(path)) if f.endswith(class_name + '.py')]
     handlers = {}
+
+    CL = -len(class_name)
 
     for moduleName in handlerNames:
         module = import_module(module_path + "." + moduleName)
         handlerClass = getattr(module, moduleName)
         handler = handlerClass(ctx)
-        handlers[moduleName[:-len(class_name)]] = handler
+
+        if CL:
+            handlers[moduleName[:CL]] = handler
+        else:
+            handlers[moduleName] = handler
 
     return handlers
+
 
 def load_config(file):
     config = configparser.ConfigParser()
