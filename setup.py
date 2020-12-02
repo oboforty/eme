@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='eme',
-      version='5.0.3',
+      version='5.0.6',
       description='Multi-purpose web framework',
       url='https://github.com/oboforty/eme',
       author='oboforty',
@@ -21,7 +21,7 @@ setup(name='eme',
           'flask-login',
           'flask-mail',
           'websockets',
-          'bcrypt',
+          'bcrypt-3.2.0',
 
           'sqlalchemy',
           'redis',

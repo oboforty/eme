@@ -153,7 +153,10 @@ class WebsiteApp(Flask):
                     # modify route with url's input params:
                     sig = inspect.signature(method)
                     for par_name, par in sig.parameters.items():
-                        if par.annotation != inspect._empty or par.annotation is str:
+                        if par_name in ['args', 'kwargs']:
+                            continue
+
+                        if par.annotation != inspect._empty and par.annotation is not str:
                             inp = f'/<{par.annotation.__name__}:{par_name}>'
                         else:
                             inp = f'/<{par_name}>'

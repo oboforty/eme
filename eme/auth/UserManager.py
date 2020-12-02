@@ -15,7 +15,7 @@ class AuthException(Exception):
 
 def get_token(user, salt=''):
     swd = '-'
-    salt = str(user.uid) + swd + user.salt + salt + str(time.time())
+    salt = str(user.uid) + swd + user.salt.decode('utf-8') + salt + str(time.time())
     token = hashlib.sha256(salt.encode('utf-8')).hexdigest()
 
     return token
@@ -43,8 +43,8 @@ class UserManager:
             raise AuthException('user_exists')
 
         # create user & pw salt
-        user.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        user.salt = bcrypt.gensalt().decode('utf-8')
+        user.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt())
+        user.salt = bcrypt.gensalt()
         user.token = get_token(user)
         self.repository.create(user)
 
@@ -65,7 +65,7 @@ class UserManager:
             if not user:
                 raise AuthException('user_not_found')
 
-        if bcrypt.checkpw(user.password.encode('utf-8'), password.encode('utf-8')):
+        if bcrypt.checkpw(password.encode('utf-8'), user.password):
             user.token = get_token(user)
             self.repository.save()
 
@@ -131,8 +131,8 @@ class UserManager:
         if not user:
             raise AuthException('wrong_code')
 
-        user.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        user.salt = bcrypt.gensalt().decode('utf-8')
+        user.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt())
+        user.salt = bcrypt.gensalt()
         user.token = get_token(user)
         user.forgot_code = None
         self.repository.save()
