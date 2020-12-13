@@ -2,18 +2,18 @@ from setuptools import setup
 
 
 setup(name='eme',
-      version='5.0.6',
+      version='5.1.0',
       description='Multi-purpose web framework',
       url='https://github.com/oboforty/eme',
       author='oboforty',
       author_email='rajmund.csombordi@hotmail.com',
       license='MIT',
       zip_safe=False,
-      packages=['eme', 'eme/auth', 'eme_tools', 'eme_tools/commands'],
-      package_data={'eme_tools': ['content/*.tpl', 'content/*.zip']},
+      packages=['eme', 'eme/_tools', 'eme/_tools/commands'],
+      package_data={'eme/_tools': ['content/*.tpl', 'modules/*.zip']},
       entry_points={
           'console_scripts': [
-              'eme = eme_tools.cli:main',
+              'eme = eme._tools.cli:main',
           ],
       },
       install_requires=[
@@ -21,10 +21,11 @@ setup(name='eme',
           'flask-login',
           'flask-mail',
           'websockets',
-          'bcrypt-3.2.0',
-
+          'bcrypt',
+          'inflect',
           'sqlalchemy',
+
+          'authlib',
           'redis',
           'faker',
-          'inflect'
       ])

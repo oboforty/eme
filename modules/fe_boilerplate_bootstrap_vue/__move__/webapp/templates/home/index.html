@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% set active_page = "Welcome" %}
+
+{% block content %}
+  <div class="container">
+
+    <!-- Search bar area -->
+    <div class="jumbotron mt-4">
+      <!-- Welcome mambo jambo -->
+      <h6 class="lead">Welcome to EME!</h6>
+      <p>This is an example web app based on vue.js, bootstrap and bootstrap-vue.</p>
+
+      <div id="app-search">
+        <example-app ref="example-app"></example-app>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {% if js_transpiled %}
+     <script defer type="text/javascript" src="/js/client.min.js"></script>
+
+     <script defer type="module">
+       // current_user.view|tojson
+
+       window.onload = function() {
+         init_search({{ settings|tojson }}, {});
+       }
+    </script>
+  {% else %}
+     <script type="module">
+       import {init_search} from '/js/mains.js';
+
+       init_search({{ settings|tojson }}, {});
+    </script>
+  {% endif %}
+{% endblock %}

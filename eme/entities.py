@@ -77,7 +77,7 @@ class SettingWrapper:
             if cast is not None:
                 return {k: cast(val) for k, val in self.conf[opts].items()}
             else:
-                return self.conf[opts]
+                return self.conf.get(opts, default)
 
         main, opt = opts.split('.')
 

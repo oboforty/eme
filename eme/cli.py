@@ -1,8 +1,6 @@
-import logging
 import sys
 import argparse
 import inspect
-from os.path import join
 
 from eme.entities import load_handlers
 
@@ -50,16 +48,15 @@ class CommandLineInterface():
                     kwargs['default'] = pee.default
 
                 if pee.annotation != inspect._empty:
-                    if pee.annotation is bool:
-                        argument = '--'+par_name
-
-                        if 'default' in kwargs:
-                            kwargs['required'] = False
-
-                    elif pee.annotation is list:
+                    #if pee.annotation in (bool, str, int):
+                    if pee.annotation is list:
                         kwargs['nargs'] = '+'
                     else:
                         kwargs['type'] = pee.annotation
+
+                        if 'default' in kwargs:
+                            argument = '--' + par_name
+                            kwargs['required'] = False
 
                 parser.add_argument(argument, **kwargs)
 
@@ -83,38 +80,3 @@ class CommandLineInterface():
         cmd_name = argv.pop(0)
 
         self.run_command(cmd_name, argv)
-
-    def run_tasks(self, tasks=None):
-        # todo: use absolute path!
-        handler_tasks = load_handlers(self, 'Task')
-
-        # Logging
-        logger = logging.getLogger('geosch')
-        logger.setLevel(logging.DEBUG)
-
-        # file log
-        fh = logging.FileHandler(self.conf.get('logfile', 'logs.txt'))
-        lvl = self.conf.get('loglevel', 'WARNING')
-        fh.setLevel(getattr(logging, lvl))
-
-        # console log
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.ERROR)
-
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-        ch.setFormatter(formatter)
-        fh.setFormatter(formatter)
-
-        logger.addHandler(ch)
-        logger.addHandler(fh)
-
-        self.logger = logger
-        self.debug_log = self.conf.get('scheduler.log_deep', False)
-
-
-        if tasks is None:
-            # all tasks
-            tasks = handler_tasks.keys()
-
-        for name in tasks:
-            handler_tasks[name].run()

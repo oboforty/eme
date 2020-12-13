@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+{% set navigation_bar = [
+  ('/', 'Home'),
+] -%}
+{% set active_page = active_page | default('index') -%}
+{% set title = active_page + ' - EME' %}
+
+<!-- Uncomment if you've added eme-login -->
+<!--{% if current_user.admin %}-->
+<!--  {% set navigation_bar = navigation_bar + [-->
+<!--    (url_for('UsersController.get_list'), 'Users'),-->
+<!--  ] -%}-->
+<!--{% endif %}-->
+
+<html>
+<head>
+  <title>{{ title }}</title>
+
+  {% block head %}{% endblock %}
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+  {% block og %}
+    <meta property="og:title" content="{{ title }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://example.com" />
+    <meta property="og:image" content="/img/banner.png" />
+    <meta property="og:description" content="EME - it really ties the web together" />
+  {% endblock %}
+
+  <!-- Bootstrap & Vue.js & Bootstrap-vue -->
+  <link type="text/css" rel="stylesheet" href="/css/vendor/bootstrap.min.css"/>
+  <link type="text/css" rel="stylesheet" href="/css/vendor/bootstrap-vue.min.css"/>
+
+  <!-- vendor js -->
+  <script src="/js/vendor/vue.min.js" defer></script>
+  <script src="/js/vendor/polyfill.min.js" defer></script>
+  <script src="/js/vendor/bootstrap-vue.min.js" defer></script>
+  <script defer type="text/javascript" src="/js/vendor/ra.min.js"></script>
+
+  <!-- Custom javascript -->
+  {% block scripts %}{% endblock %}
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" type="text/css" href="/css/style.css">
+
+  {% block styles %}{% endblock %}
+
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-md bg-brand">
+    <a class="navbar-brand text-white" href="/">
+      EME
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+      <ul class="navbar-nav">
+        {% for href, name in navigation_bar %}
+        <li class="nav-item {% if name == active_page %}active{% endif %}">
+          <a href="{{ href }}" class="nav-link">{{ name }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- uncomment this if you add eme-login -->
+    <!-- {% include 'modules/eme-users/templates/navbar_user.html' %} -->
+  </nav>
+
+  {% block content %}{% endblock %}
+
+</body>
+</html>

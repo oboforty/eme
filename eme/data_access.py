@@ -1,5 +1,6 @@
 import json
 import uuid
+from typing import Type
 
 from sqlalchemy.orm import Session
 from sqlalchemy import TEXT
@@ -148,7 +149,7 @@ def register_repository(entClass, repoClass, type='db'):
     repositories[entClass] = repoClass(db_session=sessions[type])
 
 
-def get_repo(entClass) -> RepositoryBase:
+def get_repo(entClass):
     if entClass not in repositories:
         raise Exception("Repository for {} is not registered!".format(entClass.__name__))
 
