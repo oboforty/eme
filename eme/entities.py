@@ -10,31 +10,40 @@ from uuid import UUID
 import inflect
 
 
-def load_handlers(ctx, class_name, path=None, prefix_path=None):
-    if path is None:
-        # smart-guess: plural handler type
+def load_handlers(ctx, class_suffix, module_path=None, path=None):
+    """
+    Loads EME handlers
+    :param ctx: parent app class instance
+    :param class_suffix: handler class as suffix. loaded classes must have this suffix
+    :param module_path: module_path from app/module handler root
+    :param path: sys.path for the app/module. must be included in sys.app
+    """
+
+    # smart-guess: plural handler type
+    if module_path is None:
         p = inflect.engine()
-        path = p.plural_noun(class_name).lower()
+        module_path = p.plural_noun(class_suffix).lower()
 
-    module_path = path.replace(os.sep, '.').lstrip('.').rstrip('.')
+    # replace / to . in module_path:
+    if os.sep in module_path:
+        module_path = module_path.replace(os.sep, '.')
+    if '/' in module_path:
+        module_path = module_path.replace('/', '.')
+    module_path = module_path.lstrip('.').rstrip('.')
 
-    if prefix_path is not None:
-        path = os.path.join(prefix_path, path)
-
-    handlerNames = [os.path.splitext(f)[0] for f in sorted(os.listdir(path)) if f.endswith(class_name + '.py')]
+    # list handler names:
+    handler_names = [os.path.splitext(f)[0] for f in sorted(os.listdir(path)) if f.endswith(class_suffix + '.py')]
     handlers = {}
 
-    CL = -len(class_name)
+    # load the modules:
+    CL = -len(class_suffix) if class_suffix is not None else 0
+    for module_name in handler_names:
+        module = import_module(module_path + "." + module_name)
 
-    for moduleName in handlerNames:
-        module = import_module(module_path + "." + moduleName)
-        handlerClass = getattr(module, moduleName)
-        handler = handlerClass(ctx)
-
-        if CL:
-            handlers[moduleName[:CL]] = handler
-        else:
-            handlers[moduleName] = handler
+        # instantiate class
+        handler_class = getattr(module, module_name)
+        handler = handler_class(ctx)
+        handlers[module_name[:CL]] = handler
 
     return handlers
 
@@ -100,6 +109,10 @@ class SettingWrapper:
         if cast is not None:
             return cast(val)
         return val
+
+    @property
+    def view(self):
+        return self.conf.copy()
 
 
 class Singleton(type):

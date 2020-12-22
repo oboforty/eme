@@ -8,7 +8,6 @@ from flask import Flask, Blueprint
 from werkzeug.routing import BaseConverter
 
 from .entities import load_handlers
-from .modules import init_webmodules
 
 
 class RegexConverter(BaseConverter):
@@ -21,14 +20,14 @@ CTRL_ATTRIBUTES = ['server', 'app']
 
 class WebsiteAppBase:
 
-    def __init__(self, config: dict, fbase='webapp'):
+    def __init__(self, config: dict, path='webapp'):
         if len(config) == 0:
             raise Exception("Empty config file provided")
         webconf = config['website']
 
         # Routing
         self._custom_routes = defaultdict(set)
-        self.url_map.converters['regex'] = RegexConverter
+        self.module_route = ""
 
         # Socket
         self.host = webconf.get('host', '0.0.0.0')
@@ -50,10 +49,10 @@ class WebsiteAppBase:
 
         if web_type == 'webapp':
             # Load default controllers
-            self.load_controllers('Controller', fbase, webconf.get('controllers_dir'), conf=config['routing'])
+            self.load_controllers(load_handlers(self, 'Controller', path=join(path, 'controllers')), conf=config['routing'])
         elif web_type == 'webapi':
             # Load default controllers
-            self.load_controllers('Api', fbase, webconf.get('api_dir'), conf=config['routing'])
+            self.load_controllers(load_handlers(self, 'Api', path=join(path, 'api')), conf=config['routing'])
 
             if 'Content-Type' not in headers:
                 headers['Content-Type'] = 'application/json'
@@ -64,12 +63,12 @@ class WebsiteAppBase:
             response.headers.update(headers)
             return response
 
-    def get_paths(self, config: dict, fbase='webapp'):
+    def get_paths(self, config: dict, path='webapp'):
         webconf = config['website']
 
-        template_folder = join(fbase, webconf.get('template_folder', 'templates'))
+        template_folder = join(path, webconf.get('template_folder', 'templates'))
         static_url = webconf.get('static_url_path', '')
-        static_folder = join(fbase, webconf.get('static_folder', 'public'))
+        static_folder = join(path, webconf.get('static_folder', 'public'))
 
         return template_folder,static_folder,static_url
 
@@ -91,14 +90,11 @@ class WebsiteAppBase:
         for new_url, endpoint in rules.items():
             self.preset_endpoint(new_url, endpoint)
 
-    def load_controllers(self, class_name, fbase=None, path=None, conf=None):
+    def load_controllers(self, controllers: dict, conf=None):
         debug_len = conf.get('__debug_len__', 20)
         index = conf.get('__index__')
 
         print(('{0: <7}{1: <'+str(debug_len)+'}{2}').format("OPT", "ROUTE", "ENDPOINT"))
-
-        # automatically parses custom
-        controllers = load_handlers(self, class_name, path, prefix_path=fbase)
 
         for controller_name, controller in controllers.items():
             if not hasattr(controller, 'group'):
@@ -123,7 +119,7 @@ class WebsiteAppBase:
                     action_name = '_'.join(methods)
 
                 # define endpoint (used in eme//flask internally)
-                endpoint = controller.group + '.' + option.lower() + '_' + action_name
+                endpoint = controller.group + ':' + option.lower() + '_' + action_name
                 if endpoint[-1] == '_':
                     endpoint += 'index'
 
@@ -163,23 +159,31 @@ class WebsiteAppBase:
                 #     continue
 
                 for route in routes:
-                    print(('{0: <7}{1: <'+str(debug_len)+'}{2}').format(option, route, endpoint))
+                    print(('{0: <7}{1: <'+str(debug_len)+'}{2}').format(option, route, self.module_route+endpoint))
                     self.add_url_rule(route, endpoint, getattr(controller, method_name), methods=[option])
 
-                #self.view_functions
-                #self.url_map
+
+    def init_modules(self, modules, webconf):
+        for module in modules:
+            module.init_dal()
+            module.init_webapp(self, webconf)
+
+            if hasattr(module, 'blueprint') and module.blueprint:
+                self.register_blueprint(module.blueprint, url_prefix=module.blueprint.module_route)
+            elif hasattr(module, 'blueprints') and module.blueprints:
+                for blueprint in module.blueprints:
+                    self.register_blueprint(blueprint, url_prefix=blueprint.module_route)
 
 
 class WebsiteApp(Flask, WebsiteAppBase):
 
-    def __init__(self, config: dict, fbase: str = 'webapp'):
-        sys.path.append(fbase)
+    def __init__(self, config: dict, path: str):
+        sys.path.append(path)
 
-        template_folder, static_folder, static_url = self.get_paths(config,fbase)
+        template_folder, static_folder, static_url = self.get_paths(config,path)
         Flask.__init__(self, '/', static_url_path=static_url, static_folder=static_folder, template_folder=template_folder)
-        WebsiteAppBase.__init__(self, config, fbase=fbase)
-
-        init_webmodules(self, config)
+        self.url_map.converters['regex'] = RegexConverter
+        WebsiteAppBase.__init__(self, config, path=path)
 
     def start(self):
         self.run(self.host, self.port, threaded=True, debug=self.debug)
@@ -187,7 +191,9 @@ class WebsiteApp(Flask, WebsiteAppBase):
 
 class WebsiteBlueprint(Blueprint, WebsiteAppBase):
 
-    def __init__(self, config: dict, fbase: str):
-        template_folder, static_folder, static_url = self.get_paths(config,fbase)
-        Blueprint.__init__(self, '/', static_url_path=static_url, static_folder=static_folder, template_folder=template_folder)
-        WebsiteAppBase.__init__(self, config, fbase=fbase)
+    def __init__(self, name, config: dict, path: str, module_route=""):
+        self.module_route = module_route
+
+        template_folder, static_folder, static_url = self.get_paths(config,path)
+        Blueprint.__init__(self, '/', name, static_url_path=static_url, static_folder=static_folder, template_folder=template_folder)
+        WebsiteAppBase.__init__(self, config, path=path)

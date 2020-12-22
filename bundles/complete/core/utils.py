@@ -3,7 +3,7 @@ from eme.entities import load_settings
 _gamecf = load_settings('core/content/config.ini')
 
 
-def get_game_config():
+def get_settings():
     return _gamecf
 
 

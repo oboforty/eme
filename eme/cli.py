@@ -80,3 +80,8 @@ class CommandLineInterface():
         cmd_name = argv.pop(0)
 
         self.run_command(cmd_name, argv)
+
+    def init_modules(self, modules, cliconf):
+        for module in modules:
+            module.init_dal()
+            module.init_cliapp(self, cliconf)
