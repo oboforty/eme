@@ -79,12 +79,12 @@ class WebsiteAppBase:
         new_url = ''.join(sp[1:])
 
         # force the GET keyword into the endpoint
-        controller, method = endpoint.split('.')
+        controller, method = endpoint.split(':')
         if prefix == 'GET' and method[0:3].lower() != 'get':
             method = prefix.lower() + '_' + method
 
         # custom routes are a map of {Controller.verb_method -> overridden_url}
-        self._custom_routes[controller + '.' + method].add(new_url)
+        self._custom_routes[controller + ':' + method].add(new_url)
 
     def preset_endpoints(self, rules):
         for new_url, endpoint in rules.items():
@@ -162,7 +162,6 @@ class WebsiteAppBase:
                     print(('{0: <7}{1: <'+str(debug_len)+'}{2}').format(option, route, self.module_route+endpoint))
                     self.add_url_rule(route, endpoint, getattr(controller, method_name), methods=[option])
 
-
     def init_modules(self, modules, webconf):
         for module in modules:
             module.init_dal()
@@ -195,5 +194,5 @@ class WebsiteBlueprint(Blueprint, WebsiteAppBase):
         self.module_route = module_route
 
         template_folder, static_folder, static_url = self.get_paths(config,path)
-        Blueprint.__init__(self, '/', name, static_url_path=static_url, static_folder=static_folder, template_folder=template_folder)
+        Blueprint.__init__(self, name, name, static_url_path=static_url, static_folder=static_folder, template_folder=template_folder)
         WebsiteAppBase.__init__(self, config, path=path)
