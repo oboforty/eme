@@ -23,7 +23,7 @@ def load_handlers(ctx, class_suffix, module_path=None, path=None):
     if module_path is None:
         p = inflect.engine()
         module_path = p.plural_noun(class_suffix).lower()
-
+        
     # replace / to . in module_path:
     if os.sep in module_path:
         module_path = module_path.replace(os.sep, '.')
@@ -36,13 +36,13 @@ def load_handlers(ctx, class_suffix, module_path=None, path=None):
     handlers = {}
 
     # load the modules:
-    CL = -len(class_suffix) if class_suffix is not None else 0
+    CL = -len(class_suffix) if class_suffix else None
     for module_name in handler_names:
         module = import_module(module_path + "." + module_name)
 
         # instantiate class
         handler_class = getattr(module, module_name)
-        handler = handler_class(ctx)
+        handler = handler_class(*ctx) if isinstance(ctx, tuple) else handler_class(ctx)
         handlers[module_name[:CL]] = handler
 
     return handlers
@@ -57,6 +57,9 @@ def load_config(file):
 
 def load_settings(file):
     conf = load_config(file)
+
+    if not conf:
+        return None
 
     for okey, oval in conf.items():
         for key, val in oval.items():

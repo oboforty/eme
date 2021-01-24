@@ -16,7 +16,7 @@ class CommandLineInterface():
         sys.path.append(fbase)
 
         cmdir = self.conf.get('cli.commands_dir', default='commands')
-        self.commands = load_handlers(self, 'Command', cmdir, prefix_path=fbase)
+        self.commands = load_handlers(self, 'Command', cmdir, fbase)
 
     def run_command(self, cmd_name, argv=None):
         if ':' in cmd_name:

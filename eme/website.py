@@ -18,12 +18,14 @@ class RegexConverter(BaseConverter):
 CTRL_ATTRIBUTES = ['server', 'app']
 
 
+from flask import request
+
 class WebsiteAppBase:
 
     def __init__(self, config: dict, path='webapp'):
         if len(config) == 0:
             raise Exception("Empty config file provided")
-        webconf = config['website']
+        webconf = config.get('website', {})
 
         # Routing
         self._custom_routes = defaultdict(set)
@@ -34,11 +36,11 @@ class WebsiteAppBase:
         self.port = webconf.get('port')
 
         # Flags
-        self.debug = webconf.get('debug')
+        self.debug = webconf.get('debug', False)
         #self.testing = webconf.get('testing')
-        self.develop = webconf.get('develop')
+        self.develop = webconf.get('develop', False)
 
-        self.http_verbs = webconf.get('methods')
+        self.http_verbs = webconf.get('methods', ["GET","HEAD","OPTIONS","POST","PUT","PATCH","DELETE"])
 
         web_type = webconf.get('type', 'webapp')
         headers = config.get('headers', {
@@ -49,22 +51,35 @@ class WebsiteAppBase:
 
         if web_type == 'webapp':
             # Load default controllers
-            self.load_controllers(load_handlers(self, 'Controller', path=join(path, 'controllers')), conf=config['routing'])
+            self.load_controllers(load_handlers(self, 'Controller', path=join(path, 'controllers')), conf=config.get('routing', {}))
         elif web_type == 'webapi':
             # Load default controllers
-            self.load_controllers(load_handlers(self, 'Api', path=join(path, 'api')), conf=config['routing'])
+            self.load_controllers(load_handlers(self, 'Api', module_path='api', path=join(path, 'api')), conf=config.get('routing', {}))
 
             if 'Content-Type' not in headers:
                 headers['Content-Type'] = 'application/json'
                 headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
 
+        # if self.develop:
+        #     @self.after_request
+        #     def after_request(response):
+        #         # in debug mode we also server static files, hence the lack of forcing
+        #         h = headers.copy()
+        #         if response.mimetype not in ('text/html', ):
+        #             del h['Content-Type']
+        #
+        #         response.headers.update(h)
+        #         return response
+        # else:
         @self.after_request
         def after_request(response):
             response.headers.update(headers)
             return response
 
+
+
     def get_paths(self, config: dict, path='webapp'):
-        webconf = config['website']
+        webconf = config.get('website', {})
 
         template_folder = join(path, webconf.get('template_folder', 'templates'))
         static_url = webconf.get('static_url_path', '')
@@ -121,7 +136,8 @@ class WebsiteAppBase:
                 # define endpoint (used in eme//flask internally)
                 endpoint = controller.group + ':' + option.lower() + '_' + action_name
                 if endpoint[-1] == '_':
-                    endpoint += 'index'
+                    endpoint = endpoint[:-1]
+                    #endpoint += 'index'
 
                 # check if a custom routing rule has overridden the default one
                 if endpoint in self._custom_routes:
@@ -193,6 +209,6 @@ class WebsiteBlueprint(Blueprint, WebsiteAppBase):
     def __init__(self, name, config: dict, path: str, module_route=""):
         self.module_route = module_route
 
-        template_folder, static_folder, static_url = self.get_paths(config,path)
+        template_folder, static_folder, static_url = self.get_paths(config, path)
         Blueprint.__init__(self, name, name, static_url_path=static_url, static_folder=static_folder, template_folder=template_folder)
         WebsiteAppBase.__init__(self, config, path=path)

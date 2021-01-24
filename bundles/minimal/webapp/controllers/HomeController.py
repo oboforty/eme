@@ -6,4 +6,4 @@ class HomeController():
         self.server = server
 
     def welcome(self):
-        return render_template('/home/index.html')
+        return render_template('/home/index.html', page='index')
